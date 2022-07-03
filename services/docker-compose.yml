@@ -1,0 +1,91 @@
+version: "3.9"
+
+# volumes:
+# vol-emqx-data:
+#   name: foo-emqx-data
+# vol-emqx-etc:
+#   name: foo-emqx-etc
+# vol-emqx-log:
+#   name: foo-emqx-log
+
+services:
+  mongo:
+    container_name: mongo
+    image: mongo:4.4
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./mongodata:/data/db
+      #Cambia la zona horaria de nuestro contenedor a la de nuestro equipo
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: "User_MongoDB"
+      MONGO_INITDB_ROOT_PASSWORD: "MongoDB_2021"
+
+  emqx:
+    container_name: emqx
+    image: emqx/emqx:4.2.14
+    restart: always
+    ports:
+      - "${emqxdashport}:18083"
+      - "8083:8083"
+      - "8084:8084"
+      - "1883:1883"
+      - "8883:8883"
+    volumes:
+      # - vol-emqx-data:/opt/emqx/data
+      # - vol-emqx-etc:/opt/emqx/etc
+      # - vol-emqx-log:/opt/emqx/log
+      #Cambia la zona horaria de nuestro contenedor a la de nuestro equipo
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    links:
+      - mongo
+    environment:
+      #Nombre de nuestro broker MQTT
+      EMQX_NAME: IngNovaTech
+      #Dirección IP de nuestro broker
+      EMQX_HOST: 127.0.0.1
+
+      #Usuario para ingresar al dashboard de EMQX
+      EMQX_DASHBOARD__DEFAULT_USER__LOGIN: "Admin_INT"
+      #Contraseña para acceder al dashboard de EMQX
+      EMQX_DASHBOARD__DEFAULT_USER__PASSWORD: "AdminIngNovaTech2013"
+      #Se deshabilita la conexión sin credenciales
+      EMQX_ALLOW_ANONYMOUS: "false"
+      #Si no se tienen las credenciales para acceder aun tópico
+      EMQX_ACL_NOMATCH: "deny"
+
+      #Cambiar registros de EMQX
+      EMQX_LISTENER__TCP__EXTERNAL__MAX_CONNECTIONS: 10
+
+      #Conexión con Mongo DB
+      EMQX_AUTH__MONGO__TYPE: single
+      EMQX_AUTH__MONGO__SERVER: "mongo:27017"
+      EMQX_AUTH__MONGO__POOL: 8
+
+      EMQX_AUTH__MONGO__LOGIN: "User_MongoDB"
+      EMQX_AUTH__MONGO__PASSWORD: "MongoDB_2021"
+      EMQX_AUTH__MONGO__AUTH_SOURCE: admin
+
+      EMQX_AUTH__MONGO__DATABASE: "IngNovaTechDB"
+      EMQX_AUTH__MONGO__AUTH_QUERY__COLLECTION: "emqxauthrules"
+
+      EMQX_AUTH__MONGO__SUPER_QUERY__COLLECTION: "emqxauthrules"
+      EMQX_AUTH__MONGO__SUPER_QUERY__SUPER_FIELD: "is_superuser"
+      EMQX_AUTH__MONGO__SUPER_QUERY__SELECTOR: "username=%u"
+      EMQX_AUTH__MONGO__SUPER_QUERY: "off"
+
+      EMQX_AUTH__MONGO__AUTH_QUERY__PASSWORD_HASH: plain
+      EMQX_AUTH__MONGO__AUTH_QUERY__PASSWORD_FIELD: "password"
+      EMQX_AUTH__MONGO__AUTH_QUERY__SELECTOR: "username=%u"
+
+      #Se activa la lista de control de acesso
+      EMQX_AUTH__MONGO__ACL_QUERY: "on"
+      EMQX_AUTH__MONGO__ACL_QUERY__COLLECTION: "emqxauthrules"
+      EMQX_AUTH__MONGO__ACL_QUERY__SELECTOR: "username=%u"
+
+      #Plugins que se arrancan por defecto cuando se ejecuta EMQX
+      EMQX_LOADED_PLUGINS: "emqx_recon, emqx_retainer, emqx_management, emqx_dashboard, emqx_auth_mongo"
