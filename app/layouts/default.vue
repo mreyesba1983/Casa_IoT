@@ -12,21 +12,41 @@
         <sidebar-item
           :link="{
             name: 'Principal',
-            icon: 'tim-icons icon-chart-pie-36',
-            path: '/test'
+            icon: 'tim-icons icon-tablet-2',
+            path: '/dashboard'
+          }"
+        >
+        </sidebar-item>
+        <sidebar-item
+          :link="{
+            name: 'Dispositivos',
+            icon: 'tim-icons icon-molecule-40',
+            path: '/devices'
+          }"
+        >
+        </sidebar-item>
+        <sidebar-item
+          :link="{
+            name: 'Alarmas',
+            icon: 'tim-icons icon-time-alarm',
+            path: '/alarms'
+          }"
+        >
+        </sidebar-item>
+        <sidebar-item
+          :link="{
+            name: 'Plantillas',
+            icon: 'tim-icons icon-notes',
+            path: '/templates'
           }"
         >
         </sidebar-item>
         
-        <li class="active-pro">
-          <a href="https://www.creative-tim.com/product/nuxt-black-dashboard-pro" target="_blank">
-            <i class="tim-icons icon-spaceship"></i>
-          </a>
-        </li>
       </template>
     </side-bar>
     <!--Share plugin (for demo purposes). You can remove it if don't plan on using it-->
     <sidebar-share :background-color.sync="sidebarBackground"> </sidebar-share>
+
     <div class="main-panel" :data="sidebarBackground">
       <dashboard-navbar></dashboard-navbar>
       <router-view name="header"></router-view>
@@ -44,6 +64,7 @@
     </div>
   </div>
 </template>
+
 <script>
   /* eslint-disable no-new */
   import PerfectScrollbar from 'perfect-scrollbar';
