@@ -56,7 +56,12 @@ export default {
     `~/plugins/dashboard-plugin.js`
   ],
 
-  components: true,
+  components: [
+    {
+      path: "~/components",
+      extensions: ["vue", "jsx"]
+    }
+  ],
   /*
   ** Nuxt.js dev-modules
   */
