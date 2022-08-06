@@ -53,8 +53,10 @@
                     <el-table-column prop="templateName" label="Plantilla"></el-table-column>
                     <el-table-column label="Acciones">
                         <div slot-scope="{ row, $index }">
+                            <el-tooltip content="Indicador de salvar en base de datos" style="margin-right:10px">
+                                <i class="fas fa-database " :class="{'text-success' : row.saverRule, 'text-dark' : !row.saverRule}"></i>
+                            </el-tooltip>
                             <el-tooltip content="Salvar en base de datos" effect="light" placement="top">
-                                {{ row.saverRule }}
                                 <base-switch @click="updateSaverRuleStatus($index)" :value="row.saverRule" type="primary" on-text="ON" off-text="OFF">
                                 </base-switch>
                             </el-tooltip>
@@ -69,6 +71,9 @@
                 </el-table>
             </card>
         </div>
+
+<!--VISUALIZACION DE DEVICES ARRARY USANDO JSON VIEWER-->
+        <Json :value="devices"></Json>
     </div>
 </template>
 
