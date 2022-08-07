@@ -59,7 +59,11 @@ export default {
   components: [
     {
       path: "~/components",
-      extensions: ["vue", "jsx"]
+      extensions: ["vue"]
+    },
+    {
+      path: "~/components/Widgets",
+      extensions: ["vue"]
     }
   ],
   /*

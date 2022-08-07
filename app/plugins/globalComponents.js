@@ -8,6 +8,7 @@ import { Input, InputNumber, Tooltip, Popover } from 'element-ui';
 /**
  * You can register global components here and use them as a plugin in your main Vue instance
  */
+import Indicador from '/components/Widgets/Indicador.vue';
 import ElementUI from '/node_modules/element-ui';
 
 
@@ -21,3 +22,4 @@ Vue.component(InputNumber.name, InputNumber);
 Vue.use(Tooltip);
 Vue.use(Popover);
 Vue.use(ElementUI);
+Vue.component(Indicador.name, Indicador);

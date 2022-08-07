@@ -1,5 +1,5 @@
 <template>
     <div>
-        PLANTILLAS
+        <Indicador></Indicador>
     </div>
 </template>
