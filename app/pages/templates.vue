@@ -1,16 +1,11 @@
 <template>
     <div class="row">
         <div class="col-4">
-            <Indicador :config="config1"></Indicador>
+            <Indicador :config="configIndicator"></Indicador>
         </div>
         <div class="col-4">
-            <Indicador :config="config2"></Indicador>
+            <Boton :config="configButton"></Boton>
         </div>
-        <div class="col-4">
-            <Indicador :config="config3"></Indicador>
-        </div>
-        
-        <button @click="sendData()">SEND</button>
     </div>
 </template>
 
@@ -19,7 +14,7 @@
         data() {
             return {
                 value: false,
-                config1: {
+                configIndicator: {
                     userId: "userid",
                     selectedDevice: {
                         name: "Home",
@@ -35,7 +30,7 @@
                     widget: 'indicator',
                     class: 'danger'
                 },
-                config2: {
+                configButton: {
                     userId: "userid",
                     selectedDevice: {
                         name: "Home",
@@ -44,28 +39,13 @@
                         templateId: "1234567890abcdef",
                         saverRule: "false"
                     },
-                    variableFullName: "Humedad",
-                    variable:"Var2",
-                    icon: "fa-circle",
+                    variableFullName: "Temperatura",
+                    variable:"Var1",
+                    icon: "fa-paper-plane",
                     column: 'col-6',
                     widget: 'indicator',
-                    class: 'danger'
-                },
-                config3: {
-                    userId: "userid",
-                    selectedDevice: {
-                        name: "Home",
-                        dId: "1234",
-                        templateName: "Sensores",
-                        templateId: "1234567890abcdef",
-                        saverRule: "false"
-                    },
-                    variableFullName: "Velocidad",
-                    variable:"Var3",
-                    icon: "fa-circle",
-                    column: 'col-6',
-                    widget: 'indicator',
-                    class: 'danger'
+                    class: 'danger',
+                    message: "{'fanstatus': 'stop'}"
                 }
             }
         },

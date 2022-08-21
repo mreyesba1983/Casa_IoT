@@ -18,13 +18,14 @@
         },
         mounted() {
             const topic = this.config.userId + "/" + this.config.selectedDevice.dId + "/" + this.config.variable + "/sdata";
-            console.log(topic);
             this.$nuxt.$on(topic, this.processReceivedData);
+        },
+        beforeDestroy() {
+            const topic = this.config.userId + "/" + this.config.selectedDevice.dId + "/" + this.config.variable + "/sdata";
+            this.$nuxt.$off(topic);
         },
         methods: {
             processReceivedData(data) {
-                console.log("received");
-                console.log(data);
                 this.value = data.value;
             },
             getIconColorClass() {
