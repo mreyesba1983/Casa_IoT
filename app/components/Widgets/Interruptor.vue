@@ -4,39 +4,28 @@
             <h4 class="card-title">{{config.selectedDevice.name}} - {{config.variableFullName}}</h4>
         </div>
         <i class="fa " :class="[config.icon, getIconColorClass()]" style="font-size: 30px"></i>
-        <base-button @click="sendValue()" :type="config.class" class="mb-3 pull-right">{{ config.text }}</base-button>
+        <base-switch @click="value=!value; sendValue()" :value="value" type="config.class" on-text="ON" off-text="OFF" style="margin_top: 10px" class="pull-right" size="lg"></base-switch>
     </card>
 </template>
 
 <script>
     export default {
-        props: ['config'],
+        props:['config'],
         data() {
             return {
-                sending: false
+                value: false
             };
         },
-        mounted() {
-
-            },
+        watch: {
+            config: {
+                immediate:true,
+                deep: true,
+                handler() {}
+            }
+        },
         methods: {
-            sendValue() {
-                this.sending = true;
-                setTimeout(() => {
-                    this.sending = false;
-                }, 500);
-
-                const toSend = {
-                    topic: this.config.userId + "/" + this.config.selectedDevice.dId + "/" + this.config.variable + "/actdata",
-                    msg: {
-                        value: this.config.message
-                    }
-                };
-                console.log(toSend);
-                this.$nuxt.$emit('mqtt-sender', toSend);
-            },
             getIconColorClass() {
-                if (!this.sending) {
+                if (!this.value) {
                     return "text-dark";
                 }
                 if (this.config.class == "danger") {
@@ -51,7 +40,15 @@
                 if (this.config.class == "success") {
                     return "text-success";
                 }
+            },
+            sendValue() {
+                const toSend = {
+                    topic: this.config.userId + "/" + this.config.selectedDevice.dId + "/" + this.config.variable + "/actdata",
+                    msg: {
+                        value: this.value
+                    }
+                }
             }
-        }
+        }      
     }
 </script>
