@@ -12,11 +12,19 @@ const bvrypt = require('bcrypt');
 import User from '../models/user.js';
 
 router.get('/new-user', async (req, res) => {
-    const user = await User.create({
-        name: "Manuel",
-        email: "mreyesba@gmail.com",
-        password: "121212"
-    });
+    try {
+        const user = await User.create({
+          nombre: "Manuel",
+          email: "mreyesba@gmail.com",
+          password: "121212",
+        });
+        res.json({ status: "success" });
+    } catch (error) {
+        console.log("Fallo al crear el usuario!!!".red);
+        console.log(error);
+        res.json({ "status": "fail" });
+    }
+    
 });
 
 module.exports = router;
