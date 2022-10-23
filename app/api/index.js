@@ -26,6 +26,7 @@ app.use(cors());                    //Politicas de acceso se incluyen en express
 //                                 RUTAS DE ACCESO DE LA API                                      //
 //------------------------------------------------------------------------------------------------//
 app.use("/api", require("./routes/devices.js"));
+app.use("/api", require("./routes/users.js"));
 
 module.exports = app;               //Permite ordenar las rutas de los endpoints en archivos separados
 
