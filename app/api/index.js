@@ -56,21 +56,16 @@ const options = {
     authSource: "admin"
 };
 
-try {
-    mongoose.connect(uri, options).then(() => {
-        console.log("\n");
-        console.log("***********************************".green);
-        console.log("   Conectado con la base de datos  ".green);
-        console.log("***********************************".green);
-        console.log("\n");
-    }, (err) => {
-        console.log("\n");
-        console.log("***********************************".red);
-        console.log("    Conexionado fallida a la BD    ".red);
-        console.log("***********************************".red);
-        console.log("\n");
-    });    
-} catch (error) {
-    console.log("Error de conexión a MongoDB");
-    console.log(error);
-}
+mongoose.connect(uri, options).then(() => {
+    console.log("\n");
+    console.log("***********************************".green);
+    console.log("   Conectado con la base de datos  ".green);
+    console.log("***********************************".green);
+    console.log("\n");
+}, (err) => {
+    console.log("\n");
+    console.log("***********************************".red);
+    console.log("    Conexionado fallida a la BD    ".red);
+    console.log("***********************************".red);
+    console.log("\n");
+});

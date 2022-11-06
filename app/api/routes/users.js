@@ -11,6 +11,17 @@ const bvrypt = require('bcrypt');
 //------------------------------------------------------------------------------------------------//
 import User from '../models/user.js';
 
+//------------------------------------------------------------------------------------------------//
+//                                    METODOS PARA EL END POINT                                   //
+//------------------------------------------------------------------------------------------------//
+router.post("/register", (req, res) => {
+
+});
+
+router.post("/login", (req, res) => {
+
+});
+
 router.get('/new-user', async (req, res) => {
     try {
         const user = await User.create({
