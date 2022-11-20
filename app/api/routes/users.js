@@ -14,6 +14,8 @@ import User from '../models/user.js';
 //------------------------------------------------------------------------------------------------//
 //                                    METODOS PARA EL END POINT                                   //
 //------------------------------------------------------------------------------------------------//
+
+//CREACIÓN DE UN USUARIO NUEVO
 router.post("/register", async (req, res) => {
     try {
         const name = req.body.name;
@@ -45,24 +47,47 @@ router.post("/register", async (req, res) => {
     
 });
 
-router.post("/login", (req, res) => {
+//INGRESO DE UN USUARIO
+router.post("/login", async (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
 
-});
+  var user = await User.findOne({
+    email: email
+  });
 
-router.get('/new-user', async (req, res) => {
-    try {
-        const user = await User.create({
-          nombre: "Manuel",
-          email: "mreyesba@gmail.com",
-          password: "121212",
-        });
-        res.json({ status: "success" });
-    } catch (error) {
-        console.log("Fallo al crear el usuario!!!".red);
-        console.log(error);
-        res.json({ "status": "fail" });
+//SI NO EXISTE EL USUARIO SE DEBE INDICAR QUE LAS CREDENCIALES DE ACCESO SON INVALIDAS
+  if (!user) {
+    const toSend = {
+      status: "error",
+      error: "Credenciales de acceso invalidas"
     }
-    
+
+    return res.status(401).json(toSend);
+  }
+
+//SI EXISTE EL USUARIO SE VERIFICA LA CONTRASEÑA DE ACCESO
+  if (bcrypt.compareSync(password, user.password)) {
+    user.set('password', undefined, { strict: false });
+    const token = jwt.sign({ userData: user }, 'IngNovaTech2023&Isabella', { expiresIn: 60 * 60 * 24 * 30});
+    const toSend = {
+      status: "success",
+      token: token,
+      userData: user,
+      error: "null"
+    }
+
+    return res.json(toSend);
+  } else {
+    const toSend = {
+      status: "error",
+      error: "Credenciales de acceso invalidas",
+    };
+
+    return res.status(401).json(toSend);
+  }
 });
+
+
 
 module.exports = router;
