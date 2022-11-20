@@ -17,34 +17,33 @@ import User from '../models/user.js';
 
 //CREACIÓN DE UN USUARIO NUEVO
 router.post("/register", async (req, res) => {
-    try {
-        const name = req.body.name;
-        const email = req.body.email;
-        const password = req.body.password;
-        const encryptedPassword = bcrypt.hashSync(password, 10);
+  try {
+    const name = req.body.name;
+    const email = req.body.email;
+    const password = req.body.password;
+    const encryptedPassword = bcrypt.hashSync(password, 10);
 
-        const newUser = {
-          name: name,
-          email: email,
-          password: encryptedPassword,
-        };
+    const newUser = {
+      name: name,
+      email: email,
+      password: encryptedPassword,
+    };
 
-        var user = await User.create(newUser);
-        const toSend = {
-          status: "Success"
-        };
-        res.status(200).json(toSend);    
-    } catch (error) {
-      console.log("Error al registrar usuario");
-      console.log(error);
-      const toSend = {
-        status: "Fail",
-        error: error
-      };
+    var user = await User.create(newUser);
+    const toSend = {
+      status: "Success"
+    };
+    res.status(200).json(toSend);    
+  } catch (error) {
+    console.log("Error al registrar usuario");
+    console.log(error);
+    const toSend = {
+      status: "Fail",
+      error: error
+    };
 
-      res.status(500).json(toSend);
-    }
-    
+    res.status(500).json(toSend);
+  }    
 });
 
 //INGRESO DE UN USUARIO

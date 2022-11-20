@@ -5,10 +5,25 @@ const express = require("express"); //Librería para usar node express
 const router = express.Router();
 
 //------------------------------------------------------------------------------------------------//
+//                     IMPORTAMOS EL ARCHIVO authentication.js DE MIDDLEWARES                     //
+//------------------------------------------------------------------------------------------------//
+const { checkAuth } = require('../middlewares/authentication.js');
+
+//------------------------------------------------------------------------------------------------//
+//                                    MODELOS PARA EL END POINT                                   //
+//------------------------------------------------------------------------------------------------//
+import Device from '../models/device.js';
+
+//------------------------------------------------------------------------------------------------//
 //                                    METODOS PARA EL END POINT                                   //
 //------------------------------------------------------------------------------------------------//
-router.get("/device", (req, res) => {
-    
+router.get("/device", checkAuth, (req, res) => {
+    console.log(req.userData);
+    const toSend = {
+        status: "success",
+        error: "null"
+    };
+    res.json(toSend); 
 });
 
 router.post("/device", (req, res) => {
@@ -22,5 +37,10 @@ router.delete("/device", (req, res) => {
 router.put("/device", (req, res) => {
 
 });
+
+//------------------------------------------------------------------------------------------------//
+//                                  FUNCIONES PARA EL END POINT                                   //
+//------------------------------------------------------------------------------------------------//
+
 
 module.exports = router;
