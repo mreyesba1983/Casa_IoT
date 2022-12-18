@@ -19,12 +19,14 @@ import User from '../models/user.js';
 router.post("/register", async (req, res) => {
   try {
     const name = req.body.name;
+    const lastname = req.body.lastname;
     const email = req.body.email;
     const password = req.body.password;
     const encryptedPassword = bcrypt.hashSync(password, 10);
 
     const newUser = {
       name: name,
+      lastname: lastname,
       email: email,
       password: encryptedPassword,
     };
@@ -33,16 +35,15 @@ router.post("/register", async (req, res) => {
     const toSend = {
       status: "Success"
     };
-    res.status(200).json(toSend);    
+    return res.status(200).json(toSend);    
   } catch (error) {
     console.log("Error al registrar usuario");
-    console.log(error);
     const toSend = {
       status: "Fail",
       error: error
     };
 
-    res.status(500).json(toSend);
+    return res.status(500).json(toSend);
   }    
 });
 
@@ -86,7 +87,5 @@ router.post("/login", async (req, res) => {
     return res.status(401).json(toSend);
   }
 });
-
-
 
 module.exports = router;

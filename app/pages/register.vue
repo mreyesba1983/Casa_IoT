@@ -13,7 +13,7 @@
                     <base-input name="password" v-model="user.password" placeholder="Contraseña" addon-left-icon="fa fa-lock"></base-input>
                 </div>
                 <div slot="footer">
-                    <base-button native-type="submit" type="warning" class="mb-3" size="lg" @click="register" block>Registrar usuario</base-button>
+                    <base-button native-type="submit" type="warning" class="mb-3" size="lg" @click="register()" block>Registrar usuario</base-button>
                 </div>
                 <div class="pull-right">
                     <h6>
@@ -37,6 +37,48 @@
                     email: "",
                     password: ""
                 }                
+            }
+        },
+        methods: {
+            register() {
+                this.$axios.post("/register", this.user).then(res => {
+                    console.log(res.data);
+                    //Si el usuario fue creado correctamente, notificamos al usuario
+                    if (res.data.status == "Success") {
+                        this.$notify({
+                            type: "success",
+                            icon: "tim-icons icon-check-2",
+                            message: "Usuario registrado correctamente!!!"
+                        });
+                        //Se limpia el formulario
+                        this.user.name = "";
+                        this.user.lastname = "";
+                        this.user.email = "";
+                        this.user.password = "";
+                        return;
+                    }
+                })
+                .catch(e => {
+                    console.log(e.response.data);
+                    //Si el usuario existe se muestra un mensaje indicando que ya existe el usuario
+                    if (e.response.data.error.errors.email.kind == "unique") {
+                        this.$notify({
+                            type: "danger",
+                            icon: "tim-icons icon-alert-circle-exc",
+                            message: "El usuario ya existe!!!"
+                        });
+                        return;
+                    }
+                    //Si se presenta un error creando el usuario se muestra un mensaje
+                    else {
+                        this.$notify({
+                            type: "danger",
+                            icon: "tim-icons icon-alert-circle-exc",
+                            message: "Error al crear el usuario..."
+                        });
+                        return;
+                    }
+                })
             }
         }
     }
