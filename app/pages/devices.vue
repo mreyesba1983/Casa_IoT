@@ -42,7 +42,7 @@
                     <h4 class="card-title">Dispositivos</h4>
                 </div>
 
-                <el-table :data="devices">
+                <el-table :data="$store.state.devices">
                     <el-table-column label="#" min-width="20" align="center">
                         <div slot-scope="{ $index }">
                             {{ $index + 1 }}
@@ -73,7 +73,7 @@
         </div>
 
 <!--VISUALIZACION DE DEVICES ARRARY USANDO JSON VIEWER-->
-        <Json :value="devices"></Json>
+        <Json :value="$store.state.devices"></Json>
     </div>
 </template>
 
@@ -82,32 +82,13 @@
         middleware: 'authenticated',
         data() {
             return {
-                devices: [
-                    {
-                        name: "Home",
-                        dId: "1234",
-                        templateName: "Control HMI",
-                        templateId: "1234567890abcdef",
-                        saverRule:false
-                    },
-                    {
-                        name: "Oficce",
-                        dId: "5678",
-                        templateName: "Control HMI",
-                        templateId: "1234567890abcdef",
-                        saverRule:true
-                    },
-                    {
-                        name: "Room",
-                        dId: "8901",
-                        templateName: "Control HMI",
-                        templateId: "1234567890abcdef",
-                        saverRule:false
-                    }
-                ]
-            }
+            };
+        },
+        mounted() {
+            this.$store.dispatch("getDevices");
         },
         methods: {
+
             deleteDevice(device) {
                 alert("Borrando " + device.name);
             },

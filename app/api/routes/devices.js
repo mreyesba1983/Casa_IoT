@@ -18,6 +18,7 @@ import Device from '../models/device.js';
 //------------------------------------------------------------------------------------------------//
 //                                    METODOS PARA EL END POINT                                   //
 //------------------------------------------------------------------------------------------------//
+//Leer dispositivos
 router.get("/device", checkAuth, async (req, res) => {
     try {
         const userId = req.userData._id;
@@ -37,7 +38,7 @@ router.get("/device", checkAuth, async (req, res) => {
         return res.status(500).json(toSend);
     }
 });
-
+//Crear un nuevo dispositivo
 router.post("/device", checkAuth, async (req, res) => {
     try {
         const userId = req.userData._id;
@@ -68,7 +69,7 @@ router.post("/device", checkAuth, async (req, res) => {
 
     
 });
-
+//Eliminar un dispositivo
 router.delete("/device", checkAuth, async (req, res) => {
     try {
         const userId = req.userData._id;
@@ -90,7 +91,7 @@ router.delete("/device", checkAuth, async (req, res) => {
         return res.status(500).json(toSend);
     }
 });
-
+//Actualizar un dispositivo
 router.put("/device", checkAuth, async (req, res) => {
     const dId = req.body.dId;
     const userId = req.userData._id;
