@@ -10,7 +10,7 @@
                     <base-input name="name" v-model="user.name" placeholder="Nombres" addon-left-icon="fa fa-user"></base-input>
                     <base-input name="lastname" v-model="user.lastname" placeholder="Apellidos" addon-left-icon="fa fa-user-circle"></base-input>
                     <base-input name="email" v-model="user.email" placeholder="E-mail" addon-left-icon="fa fa-envelope"></base-input>
-                    <base-input name="password" v-model="user.password" placeholder="Contraseña" addon-left-icon="fa fa-lock"></base-input>
+                    <base-input name="password" type="password" v-model="user.password" placeholder="Contraseña" addon-left-icon="fa fa-lock"></base-input>
                 </div>
                 <div slot="footer">
                     <base-button native-type="submit" type="warning" class="mb-3" size="lg" @click="register()" block>Registrar usuario</base-button>
@@ -28,6 +28,7 @@
 <script>
     export default {
         name: "register",
+        middleware: 'notAuthenticated',
         layout: "auth",
         data() {
             return {
