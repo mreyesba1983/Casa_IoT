@@ -55,12 +55,13 @@ router.post("/login", async (req, res) => {
   var user = await User.findOne({
     email: email
   });
+  console.log(user);
 
-//SI NO EXISTE EL USUARIO SE DEBE INDICAR QUE LAS CREDENCIALES DE ACCESO SON INVALIDAS
+//SI NO EXISTE EL USUARIO SE DEBE INDICAR QUE NO SE TIENE ACCESO
   if (!user) {
     const toSend = {
       status: "error",
-      error: "Credenciales de acceso invalidas"
+      error: "notUser"
     }
 
     return res.status(401).json(toSend);
@@ -81,7 +82,7 @@ router.post("/login", async (req, res) => {
   } else {
     const toSend = {
       status: "error",
-      error: "Credenciales de acceso invalidas",
+      error: "accessError",
     };
 
     return res.status(401).json(toSend);

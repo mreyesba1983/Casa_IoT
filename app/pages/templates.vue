@@ -311,6 +311,42 @@
             }
         },
         methods:{
+//ESTA FUNCIÓN GUARDA LAS PLANTILLAS EN LA BASE DE DATOS            
+            async saveTemplate() {
+                //Recuperamos el token de acceso
+                const axiosHeaders = {
+                    headers: {
+                        token: this.$store.state.auth.token
+                    }
+                };
+                //Organizamos la información que se va a almacenar en la base de datos
+                const toSend = {
+                    template: {
+                        name: this.templateName,
+                        description: this.templateDescription,
+                        widgets: this.widgets
+                    }
+                };
+                //Si la información se guarda correctamente, notificamos al usuario
+                try {
+                    const res = await this.$axios.post("/template", toSend, axiosHeaders);
+                    if (res.data.status == "success") {
+                        this.$notify({
+                            type: "success",
+                            icon: "tim-icons icon-check-2",
+                            message: "Plantilla guardada"
+                        });
+                    }
+                //Si se presenta algun error, notificamos al usuario
+                } catch (error) {
+                    this.$notify({
+                        type: "danger",
+                        icons: "tim-icons icon-aler-circle-exc",
+                        message: "Error al crear la plantilla..."
+                    });
+                    console.log(error);
+                }
+            },
 //ESTA FUNCION PERMITE ADICIONAR UN WIDGET CONFIGURADO A LA PREVISUALIZACIÓN
             addNewWidget() {
                 console.log(this.widgets);
@@ -344,10 +380,6 @@
 //ESTA FUNCION ELIMINA UN WIDGET DE LA PRECISUALIZACIÓN
             deleteWidget(index) {
                 this.widgets.splice(index, 1);
-            },
-//ESTA FUNCION ALMACENA LAS PLANTILLAS EN LA BASE DE DATOS
-            async saveTemplate() {
-
             },
             getColorClass(config) {
                 if (config == "danger") {

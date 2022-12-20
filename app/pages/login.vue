@@ -64,7 +64,23 @@
                         $nuxt.$router.push('/dashboard');
                         return;
                     }
-                })
+                }).catch(e => {
+                    console.log(e.response.data);
+                    if (e.response.data.error == "accessError") {
+                        this.$notify({
+                            type: "warning",
+                            icon: "tim-icons icon-simple-remove",
+                            message: "Credenciales de acceso incorrectas"
+                        });
+                    }
+                    if (e.response.data.error == "notUser") {
+                        this.$notify({
+                            type: "danger",
+                            icon: "tim-icons icon-alert-circle-exc",
+                            message: "Acceso denegado"
+                        });
+                    }
+                });
             }
         }
     }
