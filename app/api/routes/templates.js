@@ -59,6 +59,27 @@ router.get('/template', checkAuth, async (req, res) => {
         };
         return res.status(500).json(response);
     }
-})
+});
+//Eliminar plantillas
+router.delete('/template', checkAuth, async (req, res) => {
+    try {
+        const userId = req.userData._id;
+        const templateId = req.query.templateId;
 
+        const r = await Template.deleteOne({ userId: userId, _id: templateId });
+
+        const response = {
+            status: "success"
+        };
+
+        return res.json(response);
+    } catch (error) {
+        console.log(error);
+        const response = {
+            status: "error",
+            error: error
+        };
+        return res.status(500).json(response);
+    }
+});
 module.exports = router;

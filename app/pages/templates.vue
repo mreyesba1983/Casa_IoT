@@ -130,7 +130,7 @@
                                 <el-option class="text-danger" value="danger" label="Danger" style="background: #FFFFFF"></el-option>
                             </el-select>
                             <br />
-                            <el-select v-model="configButton.column" :class="[getColorClass(configIndicator.class)]" placeholder="Seleccione el ancho" style="width: 100%">
+                            <el-select v-model="configIndicator.column" :class="[getColorClass(configIndicator.class)]" placeholder="Seleccione el ancho" style="width: 100%">
                                 <el-option :class="[getColorOptions(configIndicator.class)]" value="col-3" label="col-3" style="background: #FFFFFF"></el-option>
                                 <el-option :class="[getColorOptions(configIndicator.class)]" value="col-4" label="col-4" style="background: #FFFFFF"></el-option>
                                 <el-option :class="[getColorOptions(configIndicator.class)]" value="col-5" label="col-5" style="background: #FFFFFF"></el-option>
@@ -369,6 +369,36 @@
                         type: "danger",
                         icon: "tim-icons icon-alert-circle-exc",
                         message: "Error al leer las plantillas de la base de datos..."
+                    });
+                    console.log(error);
+                    return;
+                }
+            },
+//ESTA FUNCIÓN ELIMINA UNA PLANTILLA
+            async deleteTemplate(template) {
+                const axiosHeaders = {
+                    headers: {
+                        token: this.$store.state.auth.token
+                    },
+                    params: {
+                        templateId: template._id
+                    }
+                };
+                try {
+                    const res = await this.$axios.delete('/template', axiosHeaders);
+                    if (res.data.status == "success") {
+                        this.$notify({
+                            type: "success",
+                            icon: "tim-icons icon-check-2",
+                            message: template.name + " fue borrado exitosamente!!!"
+                        });
+                        this.getTemplates();
+                    }
+                } catch (error) {
+                    this.$notify({
+                        type: "danger",
+                        icon: "tim-icons icon-alert-circle-exc",
+                        message: "Error al intentar borra la plantilla"
                     });
                     console.log(error);
                     return;
