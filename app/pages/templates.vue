@@ -200,17 +200,17 @@
                     <h4 class="card-title">Plantillas</h4>
                 </div>
                 <div class="row">
-                    <el-table :data="templates">
-                        <el-table-column min-width="50" label="#" align="center">
-                            <div class="photo" slot-scope="{ $index }">
+                    <el-table :data="templates" style="width: 100%">
+                        <el-table-column min-width="20" label="#" align="center">
+                            <div slot-scope="{ $index }">
                                 {{ $index + 1 }}
                             </div>
                         </el-table-column>
                         <el-table-column prop="name" label="Nombre"></el-table-column>
-                        <el-table-column prop="desription" label="Descripción"></el-table-column>
+                        <el-table-column prop="description" label="Descripción"></el-table-column>
                         <el-table-column prop="widgets.length" label="Widgets"></el-table-column>
-                        <el-table-column header-align="right" align="right" label="Acciones">
-                            <div slot-scope="{ row }" class="text-right table-actions">
+                        <el-table-column label="Acciones">
+                            <div slot-scope="{ row }" class="text-left table-actions">
                                 <el-tooltip content="Delete" effect="light" :open-delay="300" placement="top">
                                     <base-button @click="deleteTemplate(row)" type="danger" icon size="sm" class="btn-link">
                                         <i class="tim-icons icon-simple-remove"></i>
@@ -310,6 +310,9 @@
                 }
             }
         },
+        mounted () {
+            this.getTemplates();
+        },
         methods:{
 //ESTA FUNCIÓN GUARDA LAS PLANTILLAS EN LA BASE DE DATOS            
             async saveTemplate() {
@@ -336,6 +339,7 @@
                             icon: "tim-icons icon-check-2",
                             message: "Plantilla guardada"
                         });
+                        this.getTemplates();
                     }
                 //Si se presenta algun error, notificamos al usuario
                 } catch (error) {
@@ -345,6 +349,29 @@
                         message: "Error al crear la plantilla..."
                     });
                     console.log(error);
+                }
+            },
+//ESTA FUNCIÓN LISTA LAS PLANTILLAS ALMACENADAS EN LA BASE DE DATOS
+            async getTemplates() {
+                const axiosHeaders = {
+                    headers: {
+                        token: this.$store.state.auth.token
+                    }
+                };
+                try {
+                    const res = await this.$axios.get("/template", axiosHeaders);
+                    if (res.data.status == "success") {
+                        this.templates = res.data.data;
+                    }
+
+                } catch (error) {
+                    this.$notify({
+                        type: "danger",
+                        icon: "tim-icons icon-alert-circle-exc",
+                        message: "Error al leer las plantillas de la base de datos..."
+                    });
+                    console.log(error);
+                    return;
                 }
             },
 //ESTA FUNCION PERMITE ADICIONAR UN WIDGET CONFIGURADO A LA PREVISUALIZACIÓN

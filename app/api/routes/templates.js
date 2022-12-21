@@ -17,6 +17,7 @@ import Template from '../models/template.js';
 //------------------------------------------------------------------------------------------------//
 //                                    METODOS PARA EL END POINT                                   //
 //------------------------------------------------------------------------------------------------//
+//Crea la nueva plantilla
 router.post('/template', checkAuth, async (req, res) => {
     try {
         const userId = req.userData._id;
@@ -40,5 +41,24 @@ router.post('/template', checkAuth, async (req, res) => {
         return res.status(500).json(response);
     }
 });
+//Listar plantillas
+router.get('/template', checkAuth, async (req, res) => {
+    try {
+        const userId = req.userData._id;
+        const templates = await Template.find({ userId: userId });
+        const response = {
+            status: "success",
+            data: templates
+        };
+        return res.json(response);
+    } catch (error) {
+        console.log(error);
+        const response = {
+            status: "error",
+            error: error
+        };
+        return res.status(500).json(response);
+    }
+})
 
 module.exports = router;
