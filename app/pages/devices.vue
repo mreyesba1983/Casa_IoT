@@ -8,28 +8,26 @@
                 </div>
                 <div class="row">
                     <div class="col-4">
-                        <base-input label="Nombre del dispositivo" type="text" placeholder="Ej.: Home, Oficce, ...">
+                        <base-input v-model="newDevice.name" label="Nombre del dispositivo" type="text" placeholder="Ej.: Home, Oficce, ...">
                         </base-input>
                     </div>
                     <div class="col-4">
-                        <base-input label="ID del dispositivo" type="text" placeholder="Ej.: 1234-5678">
+                        <base-input v-model="newDevice.dId" label="ID del dispositivo" type="text" placeholder="Ej.: 1234-5678">
                         </base-input>
                     </div>
                     <div class="col-4">
                         <slot name="label">
                             <label>Plantilla</label>
                         </slot>
-                        <el-select value="1" placeholder="Seleccione la plantilla" style="width:100%" class="select-primary">
-                            <el-option class="text-white" value="Template1" label="Plantilla 1"></el-option>
-                            <el-option class="text-white" value="Template2" label="Plantilla 2"></el-option>
-                            <el-option class="text-white" value="Template3" label="Plantilla 3"></el-option>
+                        <el-select v-model="selectedIndexTemplate" placeholder="Seleccione la plantilla" style="width:100%" class="select-primary">
+                            <el-option v-for="(template, index) in templates" :key="index" class="text-white" :value="index" :label="template.name"></el-option>
                         </el-select>
                     </div>
                 </div>
 
             <div class="row pull-right">
                 <div class="col-12">
-                    <base-button type="primary" class="mb-3" size="lg">Agregar</base-button>
+                    <base-button type="primary" class="mb-3" size="lg" @click="createNewDevice()">Agregar</base-button>
                 </div>
             </div>
         </card>
@@ -73,7 +71,7 @@
         </div>
 
 <!--VISUALIZACION DE DEVICES ARRARY USANDO JSON VIEWER-->
-        <Json :value="$store.state.devices"></Json>
+        <Json :value="templates"></Json>
     </div>
 </template>
 
@@ -82,12 +80,120 @@
         middleware: 'authenticated',
         data() {
             return {
+                templates: [],
+                selectedIndexTemplate: null,
+                newDevice: {
+                    name: "",
+                    dId: "",
+                    templateId: "",
+                    templateName: ""
+                }
             };
         },
         mounted() {
+            this.getTemplates();
             this.$store.dispatch("getDevices");
         },
         methods: {
+            //Metodo para leer las plantillas almacenadas en la base de datos por el usuario
+            async getTemplates() {
+                const axiosHeaders = {
+                    headers: {
+                        token: this.$store.state.auth.token
+                    }
+                };
+                try {
+                    const res = await this.$axios.get("/template", axiosHeaders);
+                    if(res.data.status == "success") {
+                        this.templates = res.data.data;
+                    }
+                } catch (error) {
+                    this.$notify({
+                        type: "warning",
+                        icon: "tim-icons icon-simple-remove",
+                        message: "Error al leer las plantillas almacenadas en base de datos"
+                    });
+                    console.log(error);
+                    return;
+                }
+            },
+            //Metodo para crear un nuevo dispositivo
+            createNewDevice() {
+                //Verificamos que el usuario ingrese un nombre
+                if (this.newDevice.name == "") {
+                    this.$notify({
+                        type: "warning",
+                        icon: "tim-icons icon-simple-remove",
+                        message: "Por favor ingrese el nombre del dispositivo!"
+                    });
+                    return;
+                }
+                //Verificamos que el usuario ingrese un identificador de dispositivo
+                if (this.newDevice.dId == "") {
+                    this.$notify({
+                        type: "warning",
+                        icon: "tim-icons icon-simple-remove",
+                        message: "Por favor ingrese el identificador del dispositivo!"
+                    });
+                    return;
+                }
+                //Verificamos que el usuario haya seleccionado una plantilla
+                if (this.selectedIndexTemplate == null) {
+                    this.$notify({
+                        type: "warning",
+                        icon: "tim-icons icon-simple-remove",
+                        message: "Por favor seleccione una plantilla!"
+                    });
+                    return;
+                }
+                //Creamos el encabezado para guardar en la base de datos
+                const axiosHeaders = {
+                    headers: {
+                        token: this.$store.state.auth.token
+                    }
+                };
+                //Almacenamos el valor del id de la plantilla del nuevo dispositivo
+                this.newDevice.templateId = this.templates[this.selectedIndexTemplate]._id;
+                //Almacenamos el valor del nombre de la plantilla del nuevo dispositivo
+                this.newDevice.templateName = this.templates[this.selectedIndexTemplate].name;
+
+                const toSend = {
+                    newDevice: this.newDevice
+                };
+
+                this.$axios.post("/device", toSend, axiosHeaders).then(res => {
+                    if (res.data.status == "success") {
+                        this.$notify({
+                            type: "success",
+                            icon: "tim-icons icon-check-2",
+                            message: "Dispositivo " + this.newDevice.name + " fue creado exitosamente"
+                        });
+                        this.newDevice.name = "";
+                        this.newDevice.dId = "";
+                        this.selectedIndexTemplate = null;
+                        this.$store.dispatch("getDevices");
+                        return;
+                    }
+                }).catch(e => {
+                    //Si se presenta un error al crear el nuevo dispositivo, por que el identificador ya existe en la base de datos
+                    if (e.response.data.status == "error" && e.response.data.error.errors.dId.kind == "unique") {
+                        this.$notify({
+                            type: "warning",
+                            icon: "tim-icons icon-simple-remove",
+                            message: "El identificador de dispositivo ya existe en la base de datos, trate con uno diferente"
+                        });
+                        return;
+                    } else {
+                        this.$notify({
+                            type: "danger", 
+                            icon: "tim-icons icon-simple-remove",
+                            message: "Error"
+                        });
+                        return;
+                    }
+                })
+            },
+            //Metodo para borrar un dispositivo
             deleteDevice(device) {
                 const axiosHeader = {
                     headers: {
