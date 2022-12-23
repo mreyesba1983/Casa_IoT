@@ -57,7 +57,7 @@ router.post("/login", async (req, res) => {
   });
   console.log(user);
 
-//SI NO EXISTE EL USUARIO SE DEBE INDICAR QUE NO SE TIENE ACCESO
+  //SI NO EXISTE EL USUARIO SE DEBE INDICAR QUE NO SE TIENE ACCESO
   if (!user) {
     const toSend = {
       status: "error",
@@ -67,7 +67,7 @@ router.post("/login", async (req, res) => {
     return res.status(401).json(toSend);
   }
 
-//SI EXISTE EL USUARIO SE VERIFICA LA CONTRASEÑA DE ACCESO
+  //SI EXISTE EL USUARIO SE VERIFICA LA CONTRASEÑA DE ACCESO
   if (bcrypt.compareSync(password, user.password)) {
     user.set('password', undefined, { strict: false });
     const token = jwt.sign({ userData: user }, 'IngNovaTech2023&Isabella', { expiresIn: 60 * 60 * 24 * 30});

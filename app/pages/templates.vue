@@ -185,7 +185,7 @@
                 <br /><br />
                 <div class="row">
                     <div class="col-12">
-                        <base-button native-type="submit" type="primary" class="mb-3 pull-right" size="lg" @click="saveTemplate()">
+                        <base-button native-type="submit" type="primary" class="mb-3 pull-right" size="lg" @click="saveTemplate()" :disabled="widgets.length == 0">
                             Guardar
                         </base-button>
                     </div>
@@ -340,6 +340,10 @@
                             message: "Plantilla guardada"
                         });
                         this.getTemplates();
+                        this.widgetType = "";
+                        this.widgets = [];
+                        this.templateName = "";
+                        this.templateDescription = "";
                     }
                 //Si se presenta algun error, notificamos al usuario
                 } catch (error) {
