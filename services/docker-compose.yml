@@ -29,7 +29,7 @@ services:
     image: emqx/emqx:4.2.14
     restart: always
     ports:
-      - "${emqxdashport}:18083"
+      - "18083:18083"
       - "8083:8083"
       - "8084:8084"
       - "1883:1883"
@@ -41,6 +41,9 @@ services:
       #Cambia la zona horaria de nuestro contenedor a la de nuestro equipo
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
+      #Esto es para prueba de comunicación del webhook, luego se debe borrar
+    extra_hosts:
+      - "localhost:192.168.80.15"
     links:
       - mongo
     environment:
