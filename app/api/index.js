@@ -29,6 +29,7 @@ app.use("/api", require("./routes/devices.js"));
 app.use("/api", require("./routes/users.js"));
 app.use("/api", require("./routes/templates.js"));
 app.use("/api", require("./routes/webhook.js"));
+app.use("/api", require("./routes/emqxapi.js"));
 
 module.exports = app;               //Permite ordenar las rutas de los endpoints en archivos separados
 
