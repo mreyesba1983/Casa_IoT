@@ -9,13 +9,14 @@ const colors = require("colors");
 //------------------------------------------------------------------------------------------------//
 //                                    DEFINICIÓN DE VARIABLES                                     //
 //------------------------------------------------------------------------------------------------//
+//Credenciales de acceso a EMQX para poder crear RESOURCES
 const auth = {
     auth: {
         username: 'admin',
         password: 'Access_INT'
     }
 };
-
+//Variables de trabajo
 global.saverResource = null;
 global.alarmResource = null;
 
@@ -78,11 +79,12 @@ async function createResources() {
             type: "web_hook",
             id: "webHookR:0001",
             config: {
-                url: "http://192.168.1.16:3001/api/saver-webhook",
+                //La dirección IP del host donde esta el servidor toca escribirla tal cual para poder recibir correctamente la información
+                url: "http://localhost:3001/api/saver-webhook",
                 headers: {
                     token: "121212",
                 },
-            method: "POST",
+                method: "POST",
             },
             description: "saver-webhook",
         };
@@ -90,6 +92,7 @@ async function createResources() {
             type: "web_hook",
             id: "webHookR:0002",
             config: {
+                //La dirección IP del host donde esta el servidor toca escribirla tal cual para poder recibir correctamente la información
                 url: "http://localhost:3001/api/alarm-webhook",
                 headers: {
                     token: "121212",
