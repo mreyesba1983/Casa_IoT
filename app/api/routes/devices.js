@@ -29,7 +29,18 @@ const auth = {
 router.get("/device", checkAuth, async (req, res) => {
     try {
         const userId = req.userData._id;
-        const devices = await Device.find({ userId: userId });
+        //BUscamos todos los dispositivos asociados al usuario, guardamos como VAR para desacoplar el objeto
+        var devices = await Device.find({ userId: userId });
+        //Convertimos el objeto devices en un array y evitar reactividad no deseada
+        devices = JSON.parse(JSON.stringify(devices));
+
+        //Buscamos todas las saver rules del usuario
+        const saverRules = await getSaverRules(userId);
+
+        //Creamos un array que contenga la información de los saverRules en cada dispositivo
+        devices.forEach((device, index) => {
+            devices[index].saverRule = saverRules.filter(saverRule => saverRule.dId == device.dId)[0];
+        });
 
         const toSend = {
         status: "success",
@@ -54,9 +65,9 @@ router.post("/device", checkAuth, async (req, res) => {
         newDevice.userId = userId;
         newDevice.createdTime = Date.now();
 
-        const device = await Device.create(newDevice);
-
         await createSaverRule(userId, newDevice.dId, true);
+
+        const device = await Device.create(newDevice);
 
         await selectedDevice(userId, newDevice.dId);
 
@@ -84,6 +95,9 @@ router.delete("/device", checkAuth, async (req, res) => {
         const userId = req.userData._id;
         const dId = req.query.dId;
 
+        //Elimina la regla creada en EMQX
+        await deleteSaverRule(dId);
+        //Elimina el dispositivo de nuestro FRONTEND y tambien de la base de datos
         const result = await Device.deleteOne({ userId: userId, dId: dId });
 
         const toSend = {
@@ -118,6 +132,18 @@ router.put("/device", checkAuth, async (req, res) => {
         };
         return res.json(toSend);
     }
+});
+
+//Actualizar la regla de un dispositivo
+router.put("/saver-rule", checkAuth, async (req, res) => {
+    const rule = req.body.rule;
+
+    await updateSaverRuleStatus(rule.emqxRuleId, rule.status);
+
+    const toSend = {
+        status: "success"
+    };
+    res.json(toSend);
 });
 
 //------------------------------------------------------------------------------------------------//
@@ -171,7 +197,7 @@ async function createSaverRule(userId, dId, status) {
                 emqxRuleId: res.data.data.id,
                 status: status
             });
-            console.log("Regla creada correctamente!");
+            console.log("Regla creada correctamente!".green);
             return true;
         } else {
             return false;
@@ -195,7 +221,7 @@ async function getSaverRules(userId) {
 
 //Función para actualizar una regla ya creada en EMQX
 async function updateSaverRuleStatus(emqxRuleId, status) {
-    const url = "http://localhosta:8085/api/v4/rules/" + emqxRuleId;
+    const url = "http://localhost:8085/api/v4/rules/" + emqxRuleId;
 
     const newRule = {
         enabled: status

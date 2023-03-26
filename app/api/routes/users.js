@@ -55,7 +55,6 @@ router.post("/login", async (req, res) => {
   var user = await User.findOne({
     email: email
   });
-  console.log(user);
 
   //SI NO EXISTE EL USUARIO SE DEBE INDICAR QUE NO SE TIENE ACCESO
   if (!user) {

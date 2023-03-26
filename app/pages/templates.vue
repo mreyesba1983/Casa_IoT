@@ -224,7 +224,7 @@
         </div>
 
         <!--JSON-->
-        <Json :value="widgets"></Json>
+        <Json :value="templates"></Json>
     </div>
 </template>
 

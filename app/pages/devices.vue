@@ -52,13 +52,13 @@
                     <el-table-column label="Acciones">
                         <div slot-scope="{ row, $index }">
                             <el-tooltip content="Indicador de salvar en base de datos" style="margin-right:10px">
-                                <i class="fas fa-database " :class="{'text-success' : row.saverRule, 'text-dark' : !row.saverRule}"></i>
+                                <i class="fas fa-database " :class="{'text-success' : row.saverRule.status, 'text-dark' : !row.saverRule.status}"></i>
                             </el-tooltip>
                             <el-tooltip content="Salvar en base de datos" effect="light" placement="top">
-                                <base-switch @click="updateSaverRuleStatus($index)" :value="row.saverRule" type="primary" on-text="ON" off-text="OFF">
+                                <base-switch @click="updateSaverRuleStatus(row.saverRule)" :value="row.saverRule.status" type="primary" on-text="ON" off-text="OFF">
                                 </base-switch>
                             </el-tooltip>
-                            <el-tooltip content="Delete" effect="light" :open-delay="300" placement="top">
+                            <el-tooltip content="Eliminar dispositivo" effect="light" :open-delay="300" placement="top">
                                 <base-button type="danger" icon size="sm" class="btn-link" @click="deleteDevice(row)">
                                     <i class="tim-icons icon-simple-remove"></i>
                                 </base-button>
@@ -71,7 +71,7 @@
         </div>
 
 <!--VISUALIZACION DE DEVICES ARRARY USANDO JSON VIEWER-->
-        <Json :value="templates"></Json>
+        <Json :value="$store.state.devices"></Json>
     </div>
 </template>
 
@@ -221,8 +221,45 @@
                     });
                 });
             },
-            updateSaverRuleStatus(index) {
-                this.devices[index].saverRule = !this.devices[index].saverRule;
+            //Metodo para actualizar el estado de las reglas asociadas a los dispositivos
+            updateSaverRuleStatus(rule) {
+                //Hacemos una copia desacoplada de la regla
+                var ruleCopy = JSON.parse(JSON.stringify(rule));
+                //Cambiamos el valor del estado de la regla
+                ruleCopy.status = !ruleCopy.status;
+
+                //Regla actualizada
+                const toSend = {
+                    rule: ruleCopy
+                };
+                //Para poder salvar debemos enviar el token de acceso
+                const axiosHeaders = {
+                    headers: {
+                        token: this.$store.state.auth.token
+                    }
+                };
+
+                //Enviamos la información actualizada y se verifica si se actualizo correctamente para realizar las respectivas notificaciones
+                this.$axios.put("/saver-rule", toSend, axiosHeaders).then(res => {
+                    this.$store.dispatch("getDevices");
+
+                    if (res.data.status == "success") {
+                        this.$notify({
+                            type: "success",
+                            icon: "tim-icons icon-check-2",
+                            message: "Se ha guardado correctamente el estado de la regla"
+                        });  
+                    }
+                    return;
+                }).catch(e => {
+                    console.log(e);
+                    this.$notify({
+                        type: "danger",
+                        icon: "tim-icons icon-alert-circle-exc",
+                        message: "Error al actualizar el estado de la regla"
+                    });
+                    return;
+                });
             }
         }
     };
