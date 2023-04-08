@@ -44,7 +44,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
       #Esto es para prueba de comunicación del webhook, luego se debe borrar
     extra_hosts:
-      - "localhost:192.168.1.13"
+      - "localhost:192.168.80.22"
     links:
       - mongo
     environment:

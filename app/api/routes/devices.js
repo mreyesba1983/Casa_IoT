@@ -119,7 +119,7 @@ router.put("/device", checkAuth, async (req, res) => {
     const dId = req.body.dId;
     const userId = req.userData._id;
 
-    if (selectedDevice(userId, dId)) {
+    if (await selectedDevice(userId, dId)) {
         const toSend = {
             status: "success",
             error: "null"
