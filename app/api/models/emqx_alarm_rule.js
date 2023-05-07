@@ -1,23 +1,30 @@
 //------------------------------------------------------------------------------------------------//
 //                                      LIBRERIAS REQUERIDAS                                      //
 //------------------------------------------------------------------------------------------------//
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const Schema = mongoose.Schema;
 
 //------------------------------------------------------------------------------------------------//
-//                                      ESQUEMA DEL GANCHO                                        //
+//                                      ESQUEMA DE LA ALARMA                                      //
 //------------------------------------------------------------------------------------------------//
-const saverRuleSchema = new Schema({
+const alarmRuleSchema = new Schema({
     userId: { type: String, required: [true] },
-    dId: { type:String, required: [true] },
+    dId: { type: String, required: [true] },
     emqxRuleId: { type: String, required: [true] },
-    status: { type: Boolean, required: [true] }
+    variableFullName: { type: String },
+    variable: { type: String },
+    value: { type: Number },
+    condition: { type: String },
+    triggerTime: { type: Number },
+    status: { type: Boolean },
+    counter: { type: Number, default: 0 },
+    createdTime: { type: Number }
 });
 
 //------------------------------------------------------------------------------------------------//
 //                                  CONVERTIR LA ALARMA EN MODELO                                 //
 //------------------------------------------------------------------------------------------------//
-const SaverRule = mongoose.model('SaverRule', saverRuleSchema);
+const AlarmRule = mongoose.model('alarmRule', alarmRuleSchema);
 
-export default SaverRule;
+export default AlarmRule;

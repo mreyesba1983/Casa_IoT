@@ -54,9 +54,7 @@
 </template>
 
 <script>
-    import Card from '../components/Cards/Card.vue';
-    export default {
-        components: { Card },
+    export default{
         middleware: 'authenticated',
         data() {
             return {
@@ -64,7 +62,7 @@
                 selectedWidgetIndex: null,
                 newRule: {
                     dId: null,
-                    status: null,
+                    status: true,
                     variableFullName: null,
                     variable: null,
                     value: null,
@@ -72,6 +70,80 @@
                     triggerTime: null
                 }
             };
+        },
+        methods: {
+            createNewRule() {
+                if (this.selectedWidgetIndex == null) {
+                    this.$notify({
+                        type: "warning",
+                        icon: "tim-icons icon-alert-circle-exc",
+                        message: "La variable no ha sido seleccionada"
+                    });
+                    return;
+                };
+                if (this.newRule.condition == null) {
+                    this.$notify({
+                        type: "warning",
+                        icon: "tim-icons icon-alert-circle-exc",
+                        message: "No ha seleccionado una condición"
+                    });
+                    return;
+                };
+                if (this.newRule.value == null) {
+                    this.$notify({
+                        type: "warning",
+                        icon: "tim-icons icon-alert-circle-exc",
+                        message: "No ha ingresado un valor"
+                    });
+                    return;
+                };
+                if (this.newRule.triggerTime == null) {
+                    this.$notify({
+                        type: "warning",
+                        icon: "tim-icons icon-alert-circle-exc",
+                        message: "No ha ingresado un valor de tiempo"
+                    });
+                    return;
+                };
+                this.newRule.dId = this.$store.state.selectedDevice.dId;
+                this.newRule.variableFullName = this.$store.state.selectedDevice.template.widgets[this.selectedWidgetIndex].variableFullName;
+                this.newRule.variable = this.$store.state.selectedDevice.template.widgets[this.selectedWidgetIndex].variable;
+
+                const axiosHeaders = {
+                    headers: {
+                        token: this.$store.state.auth.token
+                    }
+                };
+
+                var toSend = {
+                    newRule: this.newRule
+                };
+
+                this.$axios.post("/alarm-rule", toSend, axiosHeaders).then(res => {
+                    if (res.data.status == "success") {
+                        
+                        this.newRule.variable = null;
+                        this.newRule.condition = null;
+                        this.newRule.value = null;
+                        this.newRule.triggerTime = null;
+
+                        this.$notify({
+                            type: "success",
+                            icon: "tim-icons icon-check-2",
+                            message: "La regla de alarma fue agregada exitosamente."
+                        });
+                        return;
+                    }
+                }).catch(e => {
+                    this.$notify({
+                        type: "danger",
+                        icon: "tim-icons icon-alert-circle-exc",
+                        message: "Error"
+                    });
+                    console.log(e);
+                    return;
+                });
+            }
         }
     }
 </script>
