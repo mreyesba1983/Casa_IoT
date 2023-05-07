@@ -14,6 +14,7 @@ const { checkAuth } = require('../middlewares/authentication.js');
 //------------------------------------------------------------------------------------------------//
 import Device from '../models/device.js';
 import SaverRule from '../models/emqx_saver_rule.js';
+import Template from '../models/template.js';
 
 //------------------------------------------------------------------------------------------------//
 //                                    METODOS PARA EL END POINT                                   //
@@ -37,9 +38,13 @@ router.get("/device", checkAuth, async (req, res) => {
         //Buscamos todas las saver rules del usuario
         const saverRules = await getSaverRules(userId);
 
+        //Buscamos todas las templates del usuario
+        const templates = await getTemplates(userId);
+
         //Creamos un array que contenga la información de los saverRules en cada dispositivo
         devices.forEach((device, index) => {
             devices[index].saverRule = saverRules.filter(saverRule => saverRule.dId == device.dId)[0];
+            devices[index].template = templates.filter(template => template._id == device.templateId)[0];
         });
 
         const toSend = {
@@ -149,6 +154,17 @@ router.put("/saver-rule", checkAuth, async (req, res) => {
 //------------------------------------------------------------------------------------------------//
 //                                  FUNCIONES PARA EL END POINT                                   //
 //------------------------------------------------------------------------------------------------//
+//Función para leer todas las plantillas que tiene un usuario
+async function getTemplates(userId) {
+    try {
+        const templates = await Template.find({ userId: userId });
+        return templates;
+    } catch (error) {
+        return false;
+    }
+}
+
+//Función para seleccionar un dispositivo
 async function selectedDevice(userId, deviceId) {
     try {
         const result = await Device.updateMany( { userId: userId }, { selected: false });

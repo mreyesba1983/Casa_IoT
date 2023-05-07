@@ -20,10 +20,11 @@
     </div>
 
     <ul class="navbar-nav" :class="$rtl.isRTL ? 'mr-auto' : 'ml-auto'">
-      <el-select class="select-success" placeholder="Dispositivos:" @change="selectDevice()" v-model="selectedDevice" style="width: 100%">
-        <el-option v-for="device, index in $store.state.devices" :value="index" :label="device.name" :key="device._id" style="background-color: #FFFFFF; color: #000000;">
-        </el-option>
-      </el-select>
+      <div class="form-group has-success">
+        <select class="form-control" placeholder="Dispositivos:" @change="selectDevice()" v-model="selectedDevice" style="width: 100%">
+          <option v-for="device, index in $store.state.devices" :value="index" :label="device.name" :key="device._id" style="margin-top: 5px;"></option>
+        </select>
+      </div>
       <base-dropdown
         tag="li"
         :menu-on-right="!$rtl.isRTL"

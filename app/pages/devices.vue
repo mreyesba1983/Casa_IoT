@@ -72,7 +72,6 @@
 
 <!--VISUALIZACION DE DEVICES ARRARY USANDO JSON VIEWER-->
         <Json :value="$store.state.selectedDevice"></Json>
-        <Json :value="$store.state.devices"></Json>
     </div>
 </template>
 
