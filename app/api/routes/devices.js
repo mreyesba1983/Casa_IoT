@@ -13,6 +13,7 @@ const { checkAuth } = require('../middlewares/authentication.js');
 //                                    MODELOS PARA EL END POINT                                   //
 //------------------------------------------------------------------------------------------------//
 import Device from '../models/device.js';
+import AlarmRule from '../models/emqx_alarm_rule.js';
 import SaverRule from '../models/emqx_saver_rule.js';
 import Template from '../models/template.js';
 
@@ -41,10 +42,14 @@ router.get("/device", checkAuth, async (req, res) => {
         //Buscamos todas las templates del usuario
         const templates = await getTemplates(userId);
 
+        //Buscamos todas las alarmas del usuario
+        const alarmRules = await getAlarmRules(userId);
+
         //Creamos un array que contenga la información de los saverRules en cada dispositivo
         devices.forEach((device, index) => {
             devices[index].saverRule = saverRules.filter(saverRule => saverRule.dId == device.dId)[0];
             devices[index].template = templates.filter(template => template._id == device.templateId)[0];
+            devices[index].alarmRules = alarmRules.filter(alarmRule => alarmRule.dId == device.dId);
         });
 
         const toSend = {
@@ -162,6 +167,16 @@ async function getTemplates(userId) {
     } catch (error) {
         return false;
     }
+}
+
+//Función para leer todas las alarmas creadas por el usuario
+async function getAlarmRules(userId) {
+    try {
+        const rules = await AlarmRule.find({ userId: userId });
+        return rules;
+    } catch (error) {
+        return "error";
+    } 
 }
 
 //Función para seleccionar un dispositivo

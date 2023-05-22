@@ -50,7 +50,7 @@
                     <el-table-column prop="dId" label="ID dispositivo"></el-table-column>
                     <el-table-column prop="templateName" label="Plantilla"></el-table-column>
                     <el-table-column label="Acciones">
-                        <div slot-scope="{ row, $index }">
+                        <div slot-scope="{ row }">
                             <el-tooltip content="Indicador de salvar en base de datos" style="margin-right:10px">
                                 <i class="fas fa-database " :class="{'text-success' : row.saverRule.status, 'text-dark' : !row.saverRule.status}"></i>
                             </el-tooltip>

@@ -38,6 +38,43 @@ router.post("/alarm-rule", checkAuth, async (req, res) => {
     }
 });
 
+//Creamos la actualización de estado de la alarma
+router.put("/alarm-rule", checkAuth, async(req, res) => {
+    var rule = req.body.rule;
+
+    var r = await updateAlarmRuleStatus(rule.emqxRuleId, rule.status);
+
+    if (r == "success") {
+        const response = {
+            status: "success"
+        }
+        return res.json(response);
+    } else {
+        const response = {
+            status: "error"
+        }
+        return res.json(response);
+    }
+});
+
+//Creamos la eliminación de una alarma
+router.delete("/alarm-rule", checkAuth, async (req, res) => {
+    var emqxRuleId = req.query.emqxRuleId;
+    var r = await deleteAlarmRule(emqxRuleId);
+
+    if(r == "success") {
+        const response = {
+            status: "success"
+        }
+        return res.json(response);
+    } else {
+        const response = {
+            status: "error"
+        }
+        return res.json(response);
+    }
+});
+
 //------------------------------------------------------------------------------------------------//
 //                                  FUNCIONES PARA EL END POINT                                   //
 //------------------------------------------------------------------------------------------------//
@@ -90,6 +127,38 @@ async function createAlarmRule(newAlarm) {
         console.log("New Alarm Rule created...".green);
 
         return true;
+    }
+}
+
+//Función para actualizar el estado de una alarma
+async function updateAlarmRuleStatus(emqxRuleId, status) {
+    //Dirección a EMQX a la alarma creada
+    const url = "http://localhost:8085/api/v4/rules/" + emqxRuleId;
+    //Solo actualizamos el estado de la alarma
+    const newRule = {
+        enabled: status
+    }
+    //Enviamos la información a EMQX
+    const res = await axios.put(url, newRule, auth);
+    //Si se guarda correctamente la información actualizamos en la base de datos
+    if(res.data.data && res.status === 200) {
+        await AlarmRule.updateOne({ emqxRuleId: emqxRuleId }, { status: status });
+        console.log("Actualización de estado de la alarma".green);
+        return "success";
+    }
+}
+
+//Función para eliminar una alarma
+async function deleteAlarmRule(emqxRuleId) {
+    try {
+        const url = "http://localhost:8085/api/v4/rules/" + emqxRuleId;
+        const emqxRule = await axios.delete(url, auth);
+        console.log(emqxRule);
+        const deleted = await AlarmRule.deleteOne({ emqxRuleId: emqxRuleId });
+        return "success";
+    } catch (error) {
+        console.log(error);
+        return "error";
     }
 }
 

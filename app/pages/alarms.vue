@@ -50,11 +50,51 @@
                 </card>
             </div>
         </div>
+        <!--TABLA DE ALARMAS-->
+        <div class="row" v-if="$store.state.devices.length > 0">
+            <div class="col-sm-12">
+                <card>
+                    <div slot="header">
+                        <h4 class="card-title">Reglas de alarmas</h4>
+                    </div>
+                    <el-table v-if="$store.state.selectedDevice.alarmRules.length > 0" :data="$store.state.selectedDevice.alarmRules">
+                        <el-table-column min-width="20" label="#" align="center">
+                            <div class="photo" slot-scope="{ $index }">
+                                {{$index + 1}}
+                            </div>
+                        </el-table-column>
+                        <el-table-column prop="variableFullName" label="Nombre de la variable"></el-table-column>
+                        <el-table-column prop="variable" label="Variable"></el-table-column>
+                        <el-table-column prop="condition" label="Condición"></el-table-column>
+                        <el-table-column prop="value" label="Valor"></el-table-column>
+                        <el-table-column prop="triggerTime" label="Tiempo de disparo"></el-table-column>
+                        <el-table-column header-align="right" label="Acciones">
+                            <div slot-scope="{ row }" class="text-right table-actions">
+                                <el-tooltip content="Delete" effect="light" placement="top">
+                                    <base-button @click="deleteAlarm(row)" type="danger" icon-size="sm" class="btn-link">
+                                        <i class="tim-icons icon-simple-remove"></i>
+                                    </base-button>
+                                </el-tooltip>
+                                <el-tooltip content="Estado de regla" style="margin-left: 20px;">
+                                    <i class="fas fa-exclamation-triangle" :class="{'text-warning': row.status}"></i>
+                                </el-tooltip>
+                                <el-tooltip content="Cambiar estado regla" style="margin-left: 5px;">
+                                    <base-switch @click="updateStatusRule(row)" :value="row.status" type="primary" on-text="ON" off-text="OFF" style="margin-top: 10px;"></base-switch>
+                                </el-tooltip>
+                            </div>
+                        </el-table-column>
+                    </el-table>
+                    <h4 v-else class="card-title">No hay alarmas</h4>
+                </card>
+            </div>
+        </div>
     </div>
 </template>
 
 <script>
+import BaseButton from '../components/BaseButton.vue';
     export default{
+  components: { BaseButton },
         middleware: 'authenticated',
         data() {
             return {
@@ -72,6 +112,39 @@
             };
         },
         methods: {
+            updateStatusRule(rule) {
+                const axiosHeaders = {
+                    headers: {
+                        token: this.$store.state.auth.token
+                    }
+                }
+                var ruleCopy = JSON.parse(JSON.stringify(rule));
+                ruleCopy.status = !ruleCopy.status;
+
+                const toSend = {
+                    rule: ruleCopy
+                };
+
+                this.$axios.put("/alarm-rule", toSend, axiosHeaders).then(res => {
+                    if (res.data.status == "success") {
+                        this.$notify({
+                            type: 'success',
+                            icon: 'tim-icons icon-check-2',
+                            message: 'Exito, alarma actualizada'
+                        });
+                        this.$store.dispatch("getDevices");
+                        return;
+                    }
+                }).catch(e => {
+                    this.$notify({
+                        type: 'danger',
+                        icon: 'tim-icons icon-alert-circle-exc',
+                        message: 'Error'
+                    });
+                    console.log(e);
+                    return;
+                });
+            },
             createNewRule() {
                 if (this.selectedWidgetIndex == null) {
                     this.$notify({
@@ -132,12 +205,42 @@
                             icon: "tim-icons icon-check-2",
                             message: "La regla de alarma fue agregada exitosamente."
                         });
+                        this.$store.dispatch("getDevices");
                         return;
                     }
                 }).catch(e => {
                     this.$notify({
                         type: "danger",
                         icon: "tim-icons icon-alert-circle-exc",
+                        message: "Error"
+                    });
+                    console.log(e);
+                    return;
+                });
+            },
+            deleteAlarm(rule) {
+                const axiosHeaders = {
+                    headers: {
+                        token: this.$store.state.auth.token
+                    },
+                    params: {
+                        emqxRuleId: rule.emqxRuleId
+                    }    
+                };
+                this.$axios.delete("/alarm-rule", axiosHeaders).then(res => {
+                    if (res.data.status == "success") {
+                        this.$notify({
+                            type: "success",
+                            icon: "tim-icons icon-check-2",
+                            message: "Exito, alarma borrada"
+                        });
+                        this.$store.dispatch("getDevices");
+                        return;
+                    }
+                }).catch(e => {
+                    this.$notify({
+                        type: "danger",
+                        icon: " tim-icons icon-alert-circle-exc",
                         message: "Error"
                     });
                     console.log(e);
