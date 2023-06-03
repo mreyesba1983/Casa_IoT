@@ -8,6 +8,8 @@ const colors = require("colors");
 
 import Data from "../models/data.js";
 import Device from "../models/device.js";
+import AlarmRule from "../models/emqx_alarm_rule.js";
+import Notification from "../models/notification.js";
 
 //------------------------------------------------------------------------------------------------//
 //                                    METODOS PARA EL END POINT                                   //
@@ -50,28 +52,64 @@ router.post("/alarm-webhook", async (req, res) => {
             req.sendStatus(404);
             return;
         }
-        const data = req.body;
-        const splittedTopic = data.topic.split("/");
+
+        res.sendStatus(200);
+
+        const incomingAlarm = req.body;
+        console.log(incomingAlarm);
+
+        updateAlarmCounter(incomingAlarm.emqxRuleId);
+
+        const lastNotif = await Notification.find({ dId: incomingAlarm.dId, emqxRuleId: incomingAlarm.emqxRuleId }).sort({ time: -1 }).limit(1);
+
+        if (lastNotif == 0) {
+            console.log("Primera alarma generada".red);
+            saveNotifToMongo(incomingAlarm);
+        } else {
+            const lastNotifToNowMins = ( Date.now() - lastNotif[0].time ) / 1000 / 60;
+            if (lastNotifToNowMins > incomingAlarm.triggerTime) {
+                console.log("Alarma continua...".red)
+                saveNotifToMongo(incomingAlarm);
+            }
+        }
+
+        
+
+        const splittedTopic = incomingAlarm.topic.split("/");
         const dId = splittedTopic[1];
         const variable = splittedTopic[2];
 
-        var result = await Device.find({ dId: dId, userId: data.userId });
+        var result = await Device.find({ dId: dId, userId: incomingAlarm.userId });
 
         if (result.length == 1) {
             Data.create({
-                userId:data.userId,
+                userId:incomingAlarm.userId,
                 dId: dId,
                 variable: variable,
-                value: data.payload.value,
+                value: incomingAlarm.payload.value,
                 time: Date.now()
             })
-            console.log("Datos creados");
+            console.log("Datos creados".green);
         }
-        res.sendStatus(200);
     } catch (error) {
         console.log(error);
         res.sendStatus(200);
     }
 });
+
+function saveNotifToMongo(data) {
+    var newNotif = data;
+    newNotif.time = Date.now();
+    newNotif.readed = false;
+    Notification.create(newNotif);
+}
+
+async function updateAlarmCounter(emqxRuleId) {
+    try {
+        await AlarmRule.update({ emqxRuleId: emqxRuleId }, { $inc: { counter: 1 } });
+    } catch (error) {
+        console.log(error);
+    }
+}
 
 module.exports = router;
