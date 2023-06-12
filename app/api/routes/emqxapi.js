@@ -80,7 +80,7 @@ async function createResources() {
             id: "webHookR:0001",
             config: {
                 //La dirección IP del host donde esta el servidor toca escribirla tal cual para poder recibir correctamente la información
-                url: "http://10.152.188.4:3001/api/saver-webhook",
+                url: "http://192.168.1.3:3001/api/saver-webhook",
                 headers: {
                     token: "121212",
                 },
@@ -93,7 +93,7 @@ async function createResources() {
             id: "webHookR:0002",
             config: {
                 //La dirección IP del host donde esta el servidor toca escribirla tal cual para poder recibir correctamente la información
-                url: "http://10.152.188.4:3001/api/alarm-webhook",
+                url: "http://192.168.1.3:3001/api/alarm-webhook",
                 headers: {
                     token: "121212",
                 },

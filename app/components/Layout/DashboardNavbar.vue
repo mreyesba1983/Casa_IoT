@@ -18,13 +18,14 @@
       </div>
       <a class="navbar-brand ml-xl-3 ml-5" href="#pablo">{{ routeName }}</a>
     </div>
-
+    <!--SELECTOR DE DISPOSITIVOS CREADOS POR EL USUARIO-->
     <ul class="navbar-nav" :class="$rtl.isRTL ? 'mr-auto' : 'ml-auto'">
       <div class="form-group has-success">
         <select class="form-control" placeholder="Dispositivos:" @change="selectDevice()" v-model="selectedDevice" style="width: 100%">
           <option v-for="device, index in $store.state.devices" :value="index" :label="device.name" :key="device._id" style="margin-top: 5px;"></option>
         </select>
       </div>
+      <!--NOTIFICACIONES GENERADAS EN ALARMAS-->
       <base-dropdown
         tag="li"
         :menu-on-right="!$rtl.isRTL"
@@ -35,28 +36,26 @@
         <template
           slot="title"
         >
-          <div class="notification d-none d-lg-block d-xl-block"></div>
-          <i class="tim-icons icon-sound-wave"></i>
-          <p class="d-lg-none">New Notifications</p>
+          <!--ICONO DE NOTIFICACIONES Y COMPORTAMIENTO-->
+          <div v-if= "this.$store.state.notifications.length > 0" class="notification d-none d-lg-block d-xl-block"></div>
+          <i class="tim-icons icon-bell-55"></i>
+          <p class="d-lg-none">Nuevas notificaciones</p>
         </template>
-        <li class="nav-link">
-          <a href="#" class="nav-item dropdown-item"
-            >Mike John responded to your email</a
-          >
-        </li>
-        <li class="nav-link">
-          <a href="#" class="nav-item dropdown-item">You have 5 more tasks</a>
-        </li>
-        <li class="nav-link">
-          <a href="#" class="nav-item dropdown-item"
-            >Your friend Michael is in town</a
-          >
-        </li>
-        <li class="nav-link">
-          <a href="#" class="nav-item dropdown-item">Another notification</a>
-        </li>
-        <li class="nav-link">
-          <a href="#" class="nav-item dropdown-item">Another one</a>
+        <li @click="notificationReaded(notification._id)" v-for="(notification, index) in $store.state.notifications" :key="index" class="nav-link">
+          <a href="#" class="nav-item dropdown-item">
+            <b style="color: orangered;">
+              {{ unixToDate(notification.time) }}
+            </b>
+            <div style="margin-left:40px">
+              <b>Dispositivo: </b>{{ notification.deviceName }}<br>
+              <b>Variable: </b>{{ notification.variableFullName }}<br>
+              <b>TAG: </b>{{ notification.dId }}<br>
+              <b>Condition: </b>{{ notification.condition }}<br>
+              <b>Limit: </b>{{ notification.value }}<br>
+              <b>Value: </b>{{ notification.payload.value }}
+            </div>
+            
+          </a>
         </li>
       </base-dropdown>
       <base-dropdown
@@ -122,6 +121,7 @@ export default {
   },
   mounted(){
     this.$store.dispatch("getDevices");
+    this.$store.dispatch("getNotifications");
     this.$nuxt.$on("selectedDeviceIndex", this.updateSelectedDeviceIndex);
   },
   methods: {
@@ -144,6 +144,45 @@ export default {
         console.log(e);
         return;
       });
+    },
+    notificationReaded(notifId) {
+      const axiosHeaders = {
+        headers: {
+          token: this.$store.state.auth.token
+        }
+      };
+      const toSend = {
+        notifId: notifId
+      };
+      this.$axios.put("/notifications", toSend, axiosHeaders).then(res => {
+        this.$store.dispatch("getNotifications");
+      }).catch(e => {
+        console.log(e);
+        return;
+      });
+    },
+    unixToDate(s) {
+      var d = new Date(parseInt(s)), //Convierte el tiempo en milisegundos
+        yyyy = d.getFullYear(),
+        mm = ('0' + (d.getMonth() + 1)).slice(-2),
+        dd = ('0' + d.getDate()).slice(-2),
+        hh = d.getHours(),
+        h = hh,
+        min = ('0' + d.getMinutes()).slice(-2),
+        ampm = 'AM',
+        time;
+      if (hh > 12) {
+        h = hh - 12;
+        ampm = 'PM';
+      } else if (hh === 12) {
+        h = 12;
+        ampm = 'PM';
+      } else if (h ==0) {
+        h = 12;
+      }
+      time = dd + '/' + mm + '/' + yyyy + ', ' + h + ':' + min + ' ' + ampm;
+
+      return time;
     },
     capitalizeFirstLetter(string) {
       if (!string || typeof string !== 'string') {

@@ -102,6 +102,7 @@ import BaseButton from '../components/BaseButton.vue';
                 selectedWidgetIndex: null,
                 newRule: {
                     dId: null,
+                    deviceName: null,
                     status: true,
                     variableFullName: null,
                     variable: null,
@@ -179,6 +180,7 @@ import BaseButton from '../components/BaseButton.vue';
                     return;
                 };
                 this.newRule.dId = this.$store.state.selectedDevice.dId;
+                this.newRule.deviceName = this.$store.state.selectedDevice.name;
                 this.newRule.variableFullName = this.$store.state.selectedDevice.template.widgets[this.selectedWidgetIndex].variableFullName;
                 this.newRule.variable = this.$store.state.selectedDevice.template.widgets[this.selectedWidgetIndex].variable;
 

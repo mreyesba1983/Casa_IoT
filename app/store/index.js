@@ -2,7 +2,8 @@
 export const state = () => ({
     auth: null,
     devices: [],
-    selectedDevice: {}
+    selectedDevice: {},
+    notifications: []
 });
 
 //Para guardar información debemos convertirla en estados con MUTATIONS
@@ -18,6 +19,10 @@ export const mutations = {
     //Modificar los dispositivos
     setSelectedDevice(state, device) {
         state.selectedDevice = device;
+    },
+    //Almacena la información de las notificaciones de las alarmas
+    setNotifications(state, notifications) {
+        state.notifications = notifications;
     }
 };
 
@@ -37,8 +42,8 @@ export const actions = {
     getDevices() {
         const axiosHeader = {
             headers: {
-                token: this.state.auth.token,
-            },
+                token: this.state.auth.token
+            }
         };
         this.$axios.get("/device", axiosHeader).then((res) => {
             console.log(res.data.data);
@@ -51,6 +56,22 @@ export const actions = {
             });
 
             this.commit("setDevices", res.data.data);
+        }).catch(error => {
+            console.log(error);
+        });
+    },
+    //Lee las notificaciones asociadas al usuario
+    getNotifications() {
+        const axiosHeader = {
+            headers: {
+                token: this.state.auth.token
+            }
+        };
+        this.$axios.get("/notifications", axiosHeader).then(res => {
+            console.log(res.data.data);
+            this.commit("setNotifications", res.data.data);
+        }).catch(error => {
+            console.log(error);
         });
     }
 };
