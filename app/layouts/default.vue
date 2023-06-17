@@ -9,6 +9,7 @@
       title="Casa IoT"
     >
       <template slot-scope="props" slot="links">
+        {{ props.length }}
         <sidebar-item
           :link="{
             name: 'Principal',
@@ -89,6 +90,7 @@
   import ContentFooter from '@/components/Layout/ContentFooter.vue';
   import DashboardContent from '@/components/Layout/Content.vue';
   import { SlideYDownTransition, ZoomCenterTransition } from 'vue2-transitions';
+  import mqtt from 'mqtt';
 
   export default {
     components: {
@@ -101,7 +103,8 @@
     },
     data() {
       return {
-        sidebarBackground: 'green' //vue|blue|orange|green|red|primary
+        sidebarBackground: 'green', //vue|blue|orange|green|red|primary
+        client: null
       };
     },
     computed: {
@@ -110,6 +113,66 @@
       }
     },
     methods: {
+      //Función para crear un cliente MQTT que se va a conectar a EMQX desde el FRONTEND
+      startMqttClient() {
+        const options = {
+          host: "localhost",
+          port: 8083,
+          endpoint: "/mqtt",
+          //Si clean esta en true la sesión es limpia y no se guardan los mensajes en el broker
+          clean: true,
+          connectTimeout: 5000,
+          reconnectPeriod: 5000,
+          //Información de autenticación del cliente
+          clientId: "web_" + this.$store.state.auth.userData.name + "_" + Math.floor(Math.random() * 1000000 + 1),
+          username: "Usuario",
+          password: "Usuario"
+        };
+
+        //Ejemplo de topico: "userId/dId/variableId/sdata"
+        const deviceSubscribeTopic = this.$store.state.auth.userData._id + "/+/+/sdata";
+        const notifSubscribeTopic = this.$store.state.auth.userData._id + "/+/+/notif";
+        
+        //Dirección URL para conectar al cliente con EMQX
+        const connectUrl = "ws://" + options.host + ":" + options.port + options.endpoint;
+        
+        try {
+          this.client = mqtt.connect(connectUrl, options);  
+        } catch (error) {
+          console.log(error);
+        }
+        //Revisamos si la conexión fue exitosa
+        this.client.on('connect', () => {
+            console.log("CONEXIÓN MQTT -> Exitosa!!!");
+            console.log("\n");
+            //Realizamos la conexión a todos los dispositivos del cliente
+            this.client.subscribe(deviceSubscribeTopic, {qos:0}, (err) => {
+              if (err) {
+                console.log("Error al conectarse a los dispositivos");
+                return;
+              }
+              console.log("Conexión a dispositivos exitosa!");
+            });
+            //Realizamos la conexión a todas las notificaciones que genere EMQX
+            this.client.subscribe(notifSubscribeTopic, {qos:0}, (err) => {
+              if (err) {
+                console.log("Error al conectarse a las notificaciones");
+                return;
+              }
+              console.log("Conexión a notificaciones exitosa!");
+            });
+        });
+        //Si la conexión falla, repetimos la conexión
+        this.client.on('reconnect', (error) => {
+            console.log("Reconectando a MQTT");
+            console.log(error);
+        });
+        //Si se presenta un error en la comunicación MQTT
+        this.client.on('error', (error) => {
+            console.log("MQTT conexión ->  FALLO :(");
+            console.log(error);
+        });
+      },
       toggleSidebar() {
         if (this.$sidebar.showSidebar) {
           this.$sidebar.displaySidebar(false);
@@ -132,6 +195,7 @@
     },
     mounted() {
       this.initScrollbar();
+      this.startMqttClient();
     }
   };
 </script>

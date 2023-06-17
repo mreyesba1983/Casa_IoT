@@ -1,6 +1,7 @@
 @import "../../variables";
 @mixin select($type, $color) {
   .select-#{$type}.el-select {
+    
   }
   .select-#{$type}.el-select .el-input  {
     .el-input__suffix{
@@ -78,9 +79,9 @@
   }
 }
 
-@include select('default', $default)
-@include select('info', $info)
-@include select('primary', $primary)
-@include select('success', $success)
-@include select('warning', $warning)
-@include select('danger', $danger)
+@include select('default', $default);
+@include select('info', $info);
+@include select('primary', $primary);
+@include select('success', $success);
+@include select('warning', $warning);
+@include select('danger', $danger);
