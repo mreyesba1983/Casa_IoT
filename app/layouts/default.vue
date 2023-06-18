@@ -112,6 +112,9 @@
         return this.$route.path === '/maps/full-screen'
       }
     },
+    beforeDestroy() {
+      this.$nuxt.$off('mqtt-sender');
+    },
     methods: {
       //Función para crear un cliente MQTT que se va a conectar a EMQX desde el FRONTEND
       startMqttClient() {
@@ -141,6 +144,7 @@
         } catch (error) {
           console.log(error);
         }
+//FUNCIONES DE CONEXIÓN, RECONEXIÓN Y ERROR AL ESTABLECER LA COMUNICACIÓN MQTT
         //Revisamos si la conexión fue exitosa
         this.client.on('connect', () => {
             console.log("CONEXIÓN MQTT -> Exitosa!!!");
@@ -152,6 +156,7 @@
                 return;
               }
               console.log("Conexión a dispositivos exitosa!");
+              console.log(deviceSubscribeTopic);
             });
             //Realizamos la conexión a todas las notificaciones que genere EMQX
             this.client.subscribe(notifSubscribeTopic, {qos:0}, (err) => {
@@ -160,6 +165,7 @@
                 return;
               }
               console.log("Conexión a notificaciones exitosa!");
+              console.log(notifSubscribeTopic);
             });
         });
         //Si la conexión falla, repetimos la conexión
@@ -171,6 +177,38 @@
         this.client.on('error', (error) => {
             console.log("MQTT conexión ->  FALLO :(");
             console.log(error);
+        });
+//FUNCIONES PARA RECIBIR Y ENVIAR MENSAJES MQTT        
+        //Si se recibe un mensaje por MQTT ya sea de un dato o de una notificación
+        this.client.on('message', (topic, message) => {
+          console.log("Mensaje del dispositivo: " + topic + " -> ");
+          console.log(message.toString());
+
+          try {
+            const splittedTopic = topic.split("/");
+            const msgType = splittedTopic[3];
+
+            if (msgType == "sdata") {
+              $nuxt.$emit(topic, JSON.parse(message.toString()));
+              return;
+            } else if (msgType == "notif") {
+              this.$notify({
+                type: 'danger',
+                icon: 'tim-icons icon-alert-circle-exc',
+                message: message.toString()
+              });
+              this.$store.dispatch("getNotifications");
+              return;
+            } else {
+
+            }
+          } catch (error) {
+            console.log(error);
+          }
+        });
+        //Función para enviar mensajes por MQTT a EMQX desde el FRONTEND
+        $nuxt.$on('mqtt-sender', (toSend) => {
+          this.client.publish(toSend.topic, JSON.stringify(toSend.msg));
         });
       },
       toggleSidebar() {
@@ -196,6 +234,7 @@
     mounted() {
       this.initScrollbar();
       this.startMqttClient();
+      this.$store.dispatch("getNotifications");
     }
   };
 </script>
