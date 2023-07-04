@@ -104,7 +104,18 @@
     data() {
       return {
         sidebarBackground: 'green', //vue|blue|orange|green|red|primary
-        client: null
+        client: null,
+        options: {
+          host: "localhost",
+          port: 8083,
+          endpoint: "/mqtt",
+          clean: true,
+          connectTimeout: 5000,
+          reconnectPeriod: 5000,
+          clientId: "web_" + this.$store.state.auth.userData.name + "_" + Math.floor(Math.random() * 1000000 + 1),
+          username: "",
+          password: ""
+        }
       };
     },
     computed: {
@@ -112,35 +123,72 @@
         return this.$route.path === '/maps/full-screen'
       }
     },
+    mounted() {
+      this.$store.dispatch("getNotifications");
+      this.initScrollbar();
+      setTimeout(() => {
+        this.startMqttClient();
+      }, 2000);
+    },
     beforeDestroy() {
       this.$nuxt.$off('mqtt-sender');
     },
     methods: {
+      async getMqttCredentialsForReconnection() {
+        try {
+          const axiosHeaders = {
+            headers: {
+              token: this.$store.state.auth.token
+            }
+          };
+
+          const credentials = await this.$axios.post("/getmqttcredentialsforreconnection", null, axiosHeaders);
+          if (credentials.data.status == "success") {
+            this.client.options.username = credentials.data.username;
+            this.client.options.password = credentials.data.password;
+          }
+
+        } catch (error) {
+          
+        }
+      },
+      async getMqttCredentials() {
+        try {
+          const axiosHeaders = {
+            headers: {
+              token: this.$store.state.auth.token
+            }
+          };
+          const credentials = await this.$axios.post("/getmqttcredentials", null, axiosHeaders);
+          console.log(credentials.data);
+          if (credentials.data.status == "success") {
+            this.options.username = credentials.data.username;
+            this.options.password = credentials.data.password;
+          } else {
+            this.$notify({
+              type: 'danger',
+              icon: 'tim-icons icon-alert-circle-exc',
+              message: "Error al conectarse a MQTT"
+            })
+          }
+        } catch (error) {
+          console.log(error);
+        }
+      },
       //Función para crear un cliente MQTT que se va a conectar a EMQX desde el FRONTEND
-      startMqttClient() {
-        const options = {
-          host: "localhost",
-          port: 8083,
-          endpoint: "/mqtt",
-          //Si clean esta en true la sesión es limpia y no se guardan los mensajes en el broker
-          clean: true,
-          connectTimeout: 5000,
-          reconnectPeriod: 5000,
-          //Información de autenticación del cliente
-          clientId: "web_" + this.$store.state.auth.userData.name + "_" + Math.floor(Math.random() * 1000000 + 1),
-          username: "Usuario",
-          password: "Usuario"
-        };
+      async startMqttClient() {
+        //Llamar el metodo de obtener las credenciales MQTT
+        await this.getMqttCredentials();
 
         //Ejemplo de topico: "userId/dId/variableId/sdata"
         const deviceSubscribeTopic = this.$store.state.auth.userData._id + "/+/+/sdata";
         const notifSubscribeTopic = this.$store.state.auth.userData._id + "/+/+/notif";
         
         //Dirección URL para conectar al cliente con EMQX
-        const connectUrl = "ws://" + options.host + ":" + options.port + options.endpoint;
+        const connectUrl = "ws://" + this.options.host + ":" + this.options.port + this.options.endpoint;
         
         try {
-          this.client = mqtt.connect(connectUrl, options);  
+          this.client = mqtt.connect(connectUrl, this.options);  
         } catch (error) {
           console.log(error);
         }
@@ -170,13 +218,17 @@
         });
         //Si la conexión falla, repetimos la conexión
         this.client.on('reconnect', (error) => {
-            console.log("Reconectando a MQTT");
-            console.log(error);
+            console.log("Reconectando a MQTT", error);
+            //Se generan nuevas credenciales de acceso para reconectarse con MQTT
+            this.getMqttCredentialsForReconnection();
         });
         //Si se presenta un error en la comunicación MQTT
         this.client.on('error', (error) => {
-            console.log("MQTT conexión ->  FALLO :(");
-            console.log(error);
+            console.log("MQTT conexión ->  FALLO :(", error);
+        });
+        //Si se presenta desconexión de MQTT
+        this.client.on("disconnect", error => {
+          console.log("Desconexión MQTT!!!", error);
         });
 //FUNCIONES PARA RECIBIR Y ENVIAR MENSAJES MQTT        
         //Si se recibe un mensaje por MQTT ya sea de un dato o de una notificación
@@ -230,11 +282,6 @@
           docClasses.add('perfect-scrollbar-off');
         }
       }
-    },
-    mounted() {
-      this.initScrollbar();
-      this.startMqttClient();
-      this.$store.dispatch("getNotifications");
     }
   };
 </script>

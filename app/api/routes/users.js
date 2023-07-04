@@ -5,11 +5,13 @@ const express = require("express");     //Librería para usar node express
 const router = express.Router();
 const jwt = require('jsonwebtoken');    //Librería para crear jwt para autenticación de usuarios
 const bcrypt = require('bcrypt');
+const { checkAuth } = require('../middlewares/authentication.js');
 
 //------------------------------------------------------------------------------------------------//
-//                          IMPORTAMOS EL USUARIO CREADO COMO ESQUEMA                             //
+//                                    IMPORTAMOS MODELOS                                          //
 //------------------------------------------------------------------------------------------------//
 import User from '../models/user.js';
+import EmqxAuthRule from '../models/emqx_auth.js';
 
 //------------------------------------------------------------------------------------------------//
 //                                    METODOS PARA EL END POINT                                   //
@@ -87,5 +89,127 @@ router.post("/login", async (req, res) => {
     return res.status(401).json(toSend);
   }
 });
+
+//OBTENER CREDENCIALES MQTT
+router.post("/getmqttcredentials", checkAuth, async (req, res) => {
+  try {
+    const userId = req.userData._id;
+    const credentials = await getWebUserMqttCredentials(userId);
+
+    const toSend = {
+      status: "success",
+      username: credentials.username,
+      password: credentials.password
+    }
+
+    res.json(toSend);
+
+    setTimeout(() => {
+      getWebUserMqttCredentials(userId);
+    }, 5000);
+
+    return;
+
+  } catch (error) {
+    const toSend = {
+      status: "error",
+      error: error
+    };
+    return res.status(500).json(toSend);
+  }
+});
+
+//OBTENER CREDENCIALES DE ACCESO MQTT PARA RECONEXIÓN
+router.post("/getmqttcredentialsforreconnection", checkAuth, async (req, res) => {
+  const userId = req.userData._id;
+  const credentials = await getWebUserMqttCredentialsForReconnection(userId);
+
+  const toSend = {
+    status: "success",
+    username: credentials.username,
+    password: credentials.password
+  }
+  res.json(toSend);
+
+  setTimeout(() => {
+    getWebUserMqttCredentials(userId);
+  }, 15000);
+
+  return;
+});
+
+//------------------------------------------------------------------------------------------------//
+//                                  FUNCIONES PARA EL END POINT                                   //
+//------------------------------------------------------------------------------------------------//
+//FUNCIÓN PARA OBTENER LAS CREDENCIALES DE USUARIO MQTT
+//CREDENCIALES MQTT types:"user", "device", "superuser"
+async function getWebUserMqttCredentials(userId) {
+
+  try {
+    var rule = await EmqxAuthRule.find({ type: "user", userId: userId });
+
+    if (rule.length == 0) {
+      const newRule = {
+        userId: userId,
+        username: makeid(10),
+        password: makeid(10),
+        publish: [userId + "/#"],
+        subscribe: [userId + "/#"],
+        type: "user",
+        time: Date.now(),
+        updateTime: Date.now()
+      };
+      const result = await EmqxAuthRule.create(newRule);
+
+      const toReturn = {
+        username: result.username,
+        password: result.password
+      };
+
+      return toReturn;
+    }
+    const newUsername = makeid(10);
+    const newPassword = makeid(10);
+
+    const result = await EmqxAuthRule.updateOne({ type: "user", userId: userId }, { $set: { username: newUsername, password: newPassword, updateTime: Date.now() }});
+
+    if (result.n == 1 && result.ok == 1) {
+      return {
+        username: newUsername,
+        password: newPassword
+      }
+    } else {
+      return false;
+    }
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+}
+
+async function getWebUserMqttCredentialsForReconnection(userId) {
+  try {
+    const rule = await EmqxAuthRule.find({ type: "user", userId: userId });
+    if (rule.length == 1) {
+      const toReturn = {
+        username: rule[0].username,
+        password: rule[0].password
+      };
+      return toReturn;
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+function makeid(length) {
+  var result = '';
+  var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  var charactersLength = characters.length;
+  for (var i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+ }
 
 module.exports = router;
