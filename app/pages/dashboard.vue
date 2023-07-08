@@ -31,6 +31,11 @@
                 widgetCopy.selectedDevice.dId = this.$store.state.selectedDevice.dId;
                 widgetCopy.selectedDevice.name = this.$store.state.selectedDevice.name;
                 widgetCopy.userId = this.$store.state.selectedDevice.userId;
+
+                if (widget.widget == "chart") {
+                    widgetCopy.demo = false;
+                }
+
                 return widgetCopy;
             }
         }

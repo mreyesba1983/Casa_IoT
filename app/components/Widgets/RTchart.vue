@@ -1,13 +1,13 @@
 <template>
     <card type="chart">
         <template slot="header">
-            <h5 class="card-category pull-right">{{getTimeAgo((nowTime - time) / 1000)}} ago </h5>
+            <h5 class="card-category pull-right">{{ getTimeAgo((nowTime - time) / 1000) }} ago </h5>
 
-            <h5 class="card-category">{{config.selectedDevice.name}} - {{config.variableFullName}}</h5>
+            <h5 class="card-category">{{ config.selectedDevice.name }} - {{ config.variableFullName }}</h5>
 
             <h3 class="card-title">
                 <i class="fa " :class="[config.icon, getIconColorClass()]" aria-hidden="true" style="font-size: 30px;"></i>
-                <span>{{value.toFixed(config.decimalPlaces)}} {{config.unit}}</span>
+                <span>{{ value.toFixed(config.decimalPlaces) }} {{ config.unit }}</span>
             </h3>
         </template>
         <div class="chart-area" style="height: 300px">
@@ -103,22 +103,24 @@
                         this.value = 0;
                         this.$nuxt.$off(this.topic + "/sdata");
                         this.topic = this.config.userId + '/' + this.config.selectedDevice.dId + '/' + this.config.variable;
-                        this.$nuxt.$on(this.topic + "/sdata", this.procesReceivedData);
+                        this.$nuxt.$on(this.topic + "/sdata", this.processReceivedData);
                         this.chartOptions.series[0].data = [];
                         this.getChartData();
                         this.chartOptions.series[0].name = this.config.variableFullName + " " + this.config.unit;
                         this.updateColorClass();
                         window.dispatchEvent(new Event('resize'));
-                    }, 300);
+                    }, 1000);
                 }
             }
         },
         mounted() {
+            this.$nuxt.$on(this.config.userId + '/' + this.config.selectedDevice.dId + '/' + this.config.variable + "/sdata", this.processReceivedData);
             this.getNow();
+            this.getChartData();
             this.updateColorClass();
         },
         beforeDestroy() {
-            this.$nuxt.$off(this.topic + "/sdata");
+            this.$nuxt.$off(this.config.userId + '/' + this.config.selectedDevice.dId + '/' + this.config.variable + "/sdata", this.processReceivedData);
         },
         methods: {
             updateColorClass() {
@@ -159,7 +161,7 @@
                         aux.push(element.value);
                         this.chartOptions.series[0].data.push(aux);
                     });
-                    this,isMounted = true;
+                    this.isMounted = true;
                     return;
                 })
                 .catch(e => {
@@ -167,7 +169,7 @@
                     return;
                 })
             },
-            procesReceivedData(data) {
+            processReceivedData(data) {
                 try {
                     this.time = Date.now();
                     this.value = data.value;
