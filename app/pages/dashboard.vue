@@ -1,8 +1,6 @@
 <template>
     <div class="row" v-if="$store.state.devices.length > 0">
         <div v-for="(widget, index) in $store.state.selectedDevice.template.widgets" :key="index" :class="[widget.column]">
-<!--SE PUEDE ELIMINAR-->
-            <json :value="fixWidget(widget)"></json>
             <RTchart v-if="widget.widget == 'chart'" :config="fixWidget(widget)"></RTchart>
             <Interruptor v-if="widget.widget == 'switch'" :config="fixWidget(widget)"></Interruptor>
             <Boton v-if="widget.widget == 'button'" :config="fixWidget(widget)"></Boton>

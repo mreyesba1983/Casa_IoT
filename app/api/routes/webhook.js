@@ -10,8 +10,10 @@ var mqtt = require("mqtt");
 import { setTimeout } from "core-js";
 import Data from "../models/data.js";
 import Device from "../models/device.js";
+import EmqxAuthRule from "../models/emqx_auth.js";
 import AlarmRule from "../models/emqx_alarm_rule.js";
 import Notification from "../models/notification.js";
+import Template from "../models/template.js";
 import { checkAuth } from "../middlewares/authentication.js";
 
 //Definimos una variable llamada "client" para crearla de forma global
@@ -20,6 +22,54 @@ var client;
 //------------------------------------------------------------------------------------------------//
 //                                    METODOS PARA EL END POINT                                   //
 //------------------------------------------------------------------------------------------------//
+//Credenciales de acceso para dispositivos
+router.post("/getdevicecredentials", async (req, res) => {
+    const dId = req.body.dId;
+
+    const password = req.body.password;
+
+    const device = await Device.findOne({ dId: dId });
+
+    if (password != device.password) {
+        return res.status(401).json();
+    }
+
+    const userId = device.userId;
+
+    var credentials = await getDeviceMqttCredentials(dId, userId);
+    var template = await Template.findOne({ _id: device.templateId });
+
+    var variables = [];
+
+    template.widgets.forEach(widget => {
+        var v = (({
+            variable,
+            variableFullName,
+            variableType,
+            variableSendFreq
+        }) => ({
+            variable,
+            variableFullName,
+            variableType,
+            variableSendFreq
+        })) (widget);
+        
+        variables.push(v);
+    });
+
+    const toSend = {
+        username: credentials.username,
+        password: credentials.password,
+        topic: userId + "/" + dId + "/",
+        variables: variables
+    };
+    res.json(toSend);
+
+    setTimeout(() => {
+        getDeviceMqttCredentials(dId, userId);
+    }, 30000);
+});
+
 //Webhook para salvar información
 router.post("/saver-webhook", async (req, res) => {
     if (req.headers.token != "121212") {
@@ -151,6 +201,43 @@ router.put("/notifications", checkAuth, async (req, res) => {
 //------------------------------------------------------------------------------------------------//
 //                                  FUNCIONES PARA EL END POINT                                   //
 //------------------------------------------------------------------------------------------------//
+async function getDeviceMqttCredentials(dId, userId) {
+    try {
+        var rule = await EmqxAuthRule.find({ type: "device", userId: userId, dId: dId });
+        if (rule.length == 0) {
+            const newRule = {
+                userId: userId,
+                username: makedata(10),
+                password: makedata(10),
+                publish: [userId + "/" + dId + "/+/sdata"],
+                subscribe: [userId + "/" + dId + "/+/actdata"],
+                type: "device",
+                time: Date.now(),
+                updatedTime: Date.now()
+            };
+            const result = await EmqxAuthRule.create(newRule);
+            const toReturn = {
+                username: result.username,
+                password: result.password
+            };
+            return toReturn;
+        }
+        const newUserName = makedata(10);
+        const newPassword = makedata(10);
+
+        const result = await EmqxAuthRule.updateOne({ type: "device", dId: dId}, { $set: { username: newUserName, password: newPassword, updatedTime: Date.now() }});
+
+        if (result.n == 1 && result.ok == 1) {
+            return { username: newUserName, password: newPassword };
+        } else {
+            return false;            
+        }
+    } catch (error) {
+        console.log(error);
+        return false;
+    }
+}
+
 function startMqttClient() {
     //Creamos las opciones para crear el cliente MQTT en EMQX
     const options = {
@@ -220,6 +307,17 @@ async function getNotifications(userId) {
         console.log(error);
         return false;
     }
+}
+
+//Función para crear valores aleatorios para los dispositivos que se creen
+function makedata(length) {
+    var result = "";
+    var characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    var charactersLength = characters.length;
+    for (var i = 0; i < length; i++ ) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
 }
 
 //Se llama a la función para iniciar un cliente MQTT

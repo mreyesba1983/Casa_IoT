@@ -44,6 +44,7 @@
                             <base-input v-model="configChart.unit" label="Unit" type="text"></base-input>
                             <base-input v-model="configChart.decimalPlaces" label="Decimal Places" type="number"></base-input>
                             <base-input v-model="configChart.icon" label="Icon" type="text"></base-input>
+                            <base-input v-model="configChart.variableSendFreq" label="Frecuencia de lectura" type="number"></base-input>
                             <base-input v-model="configChart.chartTimeAgo" label="Chart Back Time (mins)"></base-input>
                             <br />
                             <el-select v-model="configChart.class" :class="[getColorClass(configChart.class)]" placeholder="Seleccione la clase" style="width: 100%">
@@ -222,14 +223,13 @@
                 </div>
             </card>
         </div>
-
-        <!--JSON-->
-        <Json :value="templates"></Json>
     </div>
 </template>
 
 <script>
+import BaseInput from '../components/Inputs/BaseInput.vue';
     export default {
+  components: { BaseInput },
         middleware: 'authenticated',
         data() {
             return {

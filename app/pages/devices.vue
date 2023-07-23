@@ -47,6 +47,7 @@
                         </div>
                     </el-table-column>
                     <el-table-column prop="name" label="Nombre"></el-table-column>
+                    <el-table-column prop="password" label="Contraseña"></el-table-column>
                     <el-table-column prop="dId" label="ID dispositivo"></el-table-column>
                     <el-table-column prop="templateName" label="Plantilla"></el-table-column>
                     <el-table-column label="Acciones">
@@ -69,9 +70,6 @@
                 </el-table>
             </card>
         </div>
-
-<!--VISUALIZACION DE DEVICES ARRARY USANDO JSON VIEWER-->
-        <Json :value="$store.state.selectedDevice"></Json>
     </div>
 </template>
 
